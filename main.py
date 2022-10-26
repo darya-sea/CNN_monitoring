@@ -12,21 +12,7 @@ def fitter(negative_image, color_image):
 
     cropped = img2[3:1533, 3:2045]
     resized_cropped = cv2.resize(cropped, (2048, 1536))
-    # Initiate SIFT detector
-    sift = cv2.SIFT_create()
-    # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(img1, None)
-    kp2, des2 = sift.detectAndCompute(resized_cropped, None)
-
-    # BFMatcher with default params
-    bf = cv2.BFMatcher()
-    matches = bf.knnMatch(des1, des2, k=2)
-    # Apply ratio test
-    good = []
-    for m,n in matches:
-        if m.distance < 0.75*n.distance:
-            good.append(m)
-
+   
     cv2.imwrite(color_image, resized_cropped)
 
 def scandir(input_folder):
@@ -40,11 +26,15 @@ def scandir(input_folder):
             color = entry.path
             negative = color.replace('C.tif', 'N.tif')
 
-            if len(pool_files) < config.POOL_SIZE:
-                pool_files.append((negative, color))
+            if os.path.exists(negative):
+
+                if len(pool_files) < config.POOL_SIZE:
+                    pool_files.append((negative, color))
+                else:
+                    pool.starmap(fitter, pool_files)
+                    pool_files = []
             else:
-                pool.starmap(fitter, pool_files)
-                pool_files = []
+                print(f"File {negative} not found.")
 
     pool.starmap(fitter, pool_files)
 
