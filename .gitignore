@@ -128,4 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-CNN*
+CNN*backup
+CNN/*
+DATA/*
+
+.DS_Store
+test
+
+settings.json
