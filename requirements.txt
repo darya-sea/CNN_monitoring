@@ -1,7 +1,9 @@
 opencv-python
 numpy
 matplotlib
-tensorflow-macos
-tensorflow-metal
-torch
-torchvision
+pandas
+imageio
+scipy
+tensorflow==2.10
+tensorflow-macos==2.10
+tensorflow-metal==0.6

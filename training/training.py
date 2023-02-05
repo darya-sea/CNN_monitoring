@@ -1,0 +1,123 @@
+import os
+import tensorflow
+
+from keras import Model
+from keras.models import Sequential
+from keras.layers import Dense, Input, Conv2D, MaxPooling2D, Flatten
+from keras.utils import plot_model
+from keras.callbacks import ReduceLROnPlateau
+
+class Training:
+    def __init__(self, data_folder):
+        self.__data_folder = data_folder
+        self.__output_folder = f"{self.__data_folder}/output"
+        self.__batch_size = 16
+        self.__taget_size = (224, 224)
+
+        os.makedirs(self.__output_folder, exist_ok=True)
+        self.__fix_gpu()
+
+    def __fix_gpu(self):
+        config = tensorflow.compat.v1.ConfigProto()
+        config.gpu_options.allow_growth = True
+        tensorflow.compat.v1.InteractiveSession(config=config)
+
+    def get_train_generator(self):
+
+        datagen = tensorflow.keras.preprocessing.image.ImageDataGenerator(
+            rescale=1.0/255.,
+            shear_range=0.2,
+            zoom_range=0.2
+        )
+
+        train_generator = datagen.flow_from_directory(
+            f"{self.__data_folder}/train",
+            batch_size=self.__batch_size,
+            shuffle=True,
+            class_mode="categorical",
+            target_size=self.__taget_size
+        )
+
+        validation_generator = datagen.flow_from_directory(
+            f"{self.__data_folder}/validation",
+            batch_size=self.__batch_size,
+            shuffle=True,
+            class_mode="categorical",
+            target_size=self.__taget_size
+        )
+
+        # print(validation_generator.class_indices)
+        # print({v: k for k, v in validation_generator.class_indices.items()})
+
+        return train_generator, validation_generator
+
+    def validation(self, train_generator, validation_generator, benchmark_epoch):
+        benchmark_model = Sequential()
+        benchmark_model.add(Conv2D(128, kernel_size=7, activation="relu", input_shape=self.__taget_size + (3,)))
+        benchmark_model.add(MaxPooling2D(pool_size=(4,4), strides=(2,2)))
+        benchmark_model.add(Conv2D(64, kernel_size=5, activation="relu"))
+        benchmark_model.add(MaxPooling2D(pool_size=(4,4), strides=(2,2)))
+        benchmark_model.add(Flatten())
+        benchmark_model.add(Dense(128, activation="relu"))
+        benchmark_model.add(Dense(5, activation="softmax"))
+        benchmark_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["acc"])
+        benchmark_model.summary()
+
+        filepath = self.__output_folder + "/benchmark-model-{epoch:02d}-{val_acc:.2f}.hdf5"
+
+        reduce_lr = ReduceLROnPlateau(monitor="val_loss", factor=0.05, patience=5, min_lr=0.000002)
+
+        checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
+        early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=3)
+
+        history = benchmark_model.fit(
+            train_generator,
+            epochs=benchmark_epoch,
+            verbose=1,
+            validation_data = validation_generator,
+            callbacks=[
+                reduce_lr,
+                early_stopping,
+                checkpoint
+            ]
+        )
+
+        benchmark_model.save(filepath)
+
+        return history
+
+    def train(self, train_generator, validation_generator, epochs):
+        vgg_model = tensorflow.keras.applications.vgg19.VGG19(
+            pooling="avg",
+            weights="imagenet",
+            include_top=False,
+            input_shape=self.__taget_size + (3,)
+        )
+
+        for layers in vgg_model.layers:
+            layers.trainable=False
+
+        last_output = vgg_model.layers[-1].output
+
+        vgg_x = Flatten()(last_output)
+        vgg_x = Dense(128, activation = "relu")(vgg_x)
+        vgg_x = Dense(5, activation = "softmax")(vgg_x)
+
+        vgg_final_model = Model(vgg_model.input, vgg_x)
+        vgg_final_model.compile(loss = "categorical_crossentropy", optimizer= "adam", metrics=["acc"])
+
+        filepath = self.__output_folder + "/vgg-19-model-{epoch:02d}-acc-{val_acc:.2f}.hdf5"
+        checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
+        early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=5)
+        history = vgg_final_model.fit(
+            train_generator, 
+            epochs = epochs,
+            validation_data = validation_generator,
+            callbacks=[
+                checkpoint,
+                early_stopping
+            ],
+            verbose=1
+        )
+
+        return history
