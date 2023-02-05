@@ -4,6 +4,7 @@ matplotlib
 pandas
 imageio
 scipy
+imagecodecs
 tensorflow==2.10
-tensorflow-macos==2.10
-tensorflow-metal==0.6
+# tensorflow-macos==2.10
+# tensorflow-metal==0.6
