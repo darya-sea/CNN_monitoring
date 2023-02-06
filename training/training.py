@@ -21,7 +21,7 @@ class Training:
     
     def __folder_exists(self, folder):
         if not os.path.exists(folder):
-            print(f"[ERROR] Folder {folder} doesn't exist")
+            print(f"[ERROR] Data folder {folder} doesn't exist")
             return False
         return True
 
