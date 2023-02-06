@@ -10,19 +10,23 @@ from keras.callbacks import ReduceLROnPlateau
 class Training:
     def __init__(self, data_folder):
         self.__data_folder = data_folder
-        self.__output_folder = f"{self.__data_folder}/output"
         self.__batch_size = 16
         self.__taget_size = (224, 224)
-
-        os.makedirs(self.__output_folder, exist_ok=True)
         self.__fix_gpu()
 
     def __fix_gpu(self):
         config = tensorflow.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
         tensorflow.compat.v1.InteractiveSession(config=config)
+    
+    def __folder_exists(self, folder):
+        if not os.path.exists(folder):
+            print(f"[ERROR] Folder {folder} doesn't exist")
+            return False
+        return True
 
     def get_train_generator(self):
+        train_generator, validation_generator = None, None
 
         datagen = tensorflow.keras.preprocessing.image.ImageDataGenerator(
             rescale=1.0/255.,
@@ -30,21 +34,23 @@ class Training:
             zoom_range=0.2
         )
 
-        train_generator = datagen.flow_from_directory(
-            f"{self.__data_folder}/train",
-            batch_size=self.__batch_size,
-            shuffle=True,
-            class_mode="categorical",
-            target_size=self.__taget_size
-        )
+        if self.__folder_exists(f"{self.__data_folder}/train"):
+            train_generator = datagen.flow_from_directory(
+                f"{self.__data_folder}/train",
+                batch_size=self.__batch_size,
+                shuffle=True,
+                class_mode="categorical",
+                target_size=self.__taget_size
+            )
 
-        validation_generator = datagen.flow_from_directory(
-            f"{self.__data_folder}/validation",
-            batch_size=self.__batch_size,
-            shuffle=True,
-            class_mode="categorical",
-            target_size=self.__taget_size
-        )
+        if self.__folder_exists(f"{self.__data_folder}/validation"):
+            validation_generator = datagen.flow_from_directory(
+                f"{self.__data_folder}/validation",
+                batch_size=self.__batch_size,
+                shuffle=True,
+                class_mode="categorical",
+                target_size=self.__taget_size
+            )
 
         # print(validation_generator.class_indices)
         # print({v: k for k, v in validation_generator.class_indices.items()})
@@ -52,6 +58,8 @@ class Training:
         return train_generator, validation_generator
 
     def validation(self, train_generator, validation_generator, benchmark_epoch):
+        output_folder = f"{self.__data_folder}/output"
+
         benchmark_model = Sequential()
         benchmark_model.add(Conv2D(128, kernel_size=7, activation="relu", input_shape=self.__taget_size + (3,)))
         benchmark_model.add(MaxPooling2D(pool_size=(4,4), strides=(2,2)))
@@ -63,7 +71,8 @@ class Training:
         benchmark_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["acc"])
         benchmark_model.summary()
 
-        filepath = self.__output_folder + "/benchmark-model-{epoch:02d}-{val_acc:.2f}.hdf5"
+        os.makedirs(output_folder, exist_ok=True)
+        filepath = output_folder + "/benchmark-model-{epoch:02d}-{val_acc:.2f}.hdf5"
 
         reduce_lr = ReduceLROnPlateau(monitor="val_loss", factor=0.05, patience=5, min_lr=0.000002)
 
@@ -87,6 +96,8 @@ class Training:
         return history
 
     def train(self, train_generator, validation_generator, epochs):
+        output_folder = f"{self.__data_folder}/output"
+
         vgg_model = tensorflow.keras.applications.vgg19.VGG19(
             pooling="avg",
             weights="imagenet",
@@ -106,7 +117,9 @@ class Training:
         vgg_final_model = Model(vgg_model.input, vgg_x)
         vgg_final_model.compile(loss = "categorical_crossentropy", optimizer= "adam", metrics=["acc"])
 
-        filepath = self.__output_folder + "/vgg-19-model-{epoch:02d}-acc-{val_acc:.2f}.hdf5"
+        os.makedirs(output_folder, exist_ok=True)
+        filepath = output_folder + "/vgg-19-model-{epoch:02d}-acc-{val_acc:.2f}.hdf5"
+        
         checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
         early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=5)
         history = vgg_final_model.fit(

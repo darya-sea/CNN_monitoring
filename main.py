@@ -19,9 +19,10 @@ def main():
 
     #prepare.prepare_images()
     train_generator, validation_generator = training.get_train_generator()
-    # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
-    history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
-    visualization.process_history(history, f"{config.DATA_FOLDER}/vgg_model")
+    if train_generator and validation_generator:
+        # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
+        history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
+        visualization.process_history(history, f"{config.DATA_FOLDER}/vgg_model")
 
 if __name__ == "__main__":
     main()

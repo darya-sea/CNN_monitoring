@@ -23,6 +23,10 @@ class PrepareImages:
     return images
 
   def prepare_images(self):
+    if self.__input_folder == self.__output_folder:
+      print(f"[ERROR] Input and output folders are same: {self.__input_folder}. Stopped.")
+      return False
+
     all_classes = os.listdir(self.__input_folder)
     shutil.rmtree(self.__output_folder)
 
