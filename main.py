@@ -14,13 +14,12 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
 def main():
-  if not os.path.exists(f"{config.DATA_FOLDER}/train"):
-    if not os.path.exists(config.CNN_FOLDER):
-      print(f"[ERROR] Input folder {config.CNN_FOLDER} doesn't exist.")
-      return False
+  if not os.path.exists(config.CNN_FOLDER):
+    print(f"[ERROR] Input folder {config.CNN_FOLDER} doesn't exist.")
+    return False
 
-    prepare = PrepareImages(config.CNN_FOLDER, config.DATA_FOLDER)
-    prepare.prepare_images()
+  prepare = PrepareImages(config.CNN_FOLDER, config.DATA_FOLDER)
+  prepare.prepare_images()
 
   training = Training(config.DATA_FOLDER)
   train_generator, validation_generator = training.get_train_generator()
