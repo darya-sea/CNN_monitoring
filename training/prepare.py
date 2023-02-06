@@ -29,6 +29,7 @@ class PrepareImages:
 
     all_classes = os.listdir(self.__input_folder)
     shutil.rmtree(self.__output_folder)
+    os.makedirs(self.__output_folder, exist_ok=True)
 
     for _class in all_classes:
       train_folder = f"{self.__output_folder}/train/{_class}"
