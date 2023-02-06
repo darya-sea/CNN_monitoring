@@ -1,3 +1,4 @@
+import os
 import config
 import logging
 import warnings
@@ -13,16 +14,17 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
 def main():
-    training = Training(config.DATA_FOLDER)
-    visualization = Visualization()
-    #prepare = PrepareImages(config.CNN_FOLDER, config.DATA_FOLDER)
+  if not os.path.exists(f"{config.DATA_FOLDER}/train"):
+    prepare = PrepareImages(config.CNN_FOLDER, config.DATA_FOLDER)
+    prepare.prepare_images()
 
-    #prepare.prepare_images()
-    train_generator, validation_generator = training.get_train_generator()
-    if train_generator and validation_generator:
-        # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
-        history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
-        visualization.process_history(history, f"{config.DATA_FOLDER}/vgg_model")
+  training = Training(config.DATA_FOLDER)
+  train_generator, validation_generator = training.get_train_generator()
+  if train_generator and validation_generator:
+      visualization = Visualization()
+      # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
+      history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
+      visualization.process_history(history, f"{config.DATA_FOLDER}/vgg_model")
 
 if __name__ == "__main__":
     main()
