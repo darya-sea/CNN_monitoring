@@ -62,7 +62,7 @@ class PrepareImages:
       # Copy-paste images
       for image_path in train_images:
         if "N.tif" not in image_path:
-          self.__ndvi_filter.parallel_fiiter(
+          self.__ndvi_filter.parallel_filter(
             image_path,
             f"{train_folder}/ndvi_{os.path.basename(image_path)}",
             train_images_count
@@ -71,7 +71,7 @@ class PrepareImages:
 
       for image_path in validation_images:
         if "N.tif" not in image_path:
-          self.__ndvi_filter.parallel_fiiter(
+          self.__ndvi_filter.parallel_filter(
             image_path,
             f"{validation_folder}/ndvi_{os.path.basename(image_path)}",
             validation_images_count

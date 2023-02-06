@@ -12,7 +12,7 @@ class NDVI:
     self.__pool_size = pool_size
     self.__processed_images = 0
 
-  def parallel_fiiter(self, input_image, output_image, total_images):
+  def parallel_filter(self, input_image, output_image, total_images):
     if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:
       self.__pool.starmap(NDVI.filter, self.__pool_files)
       self.__pool_files = []
