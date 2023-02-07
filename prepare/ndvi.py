@@ -3,6 +3,7 @@ import numpy
 import matplotlib
 import os
 import random
+import shutil
 
 from matplotlib import pyplot
 from multiprocessing import Pool
@@ -36,6 +37,8 @@ class NDVI:
         continue
 
       ndvi_folder = f"{_class_dir}/NDVI"
+
+      shutil.rmtree(ndvi_folder, ignore_errors=True)
       os.makedirs(ndvi_folder, exist_ok=True)
 
       images = self.get_all_images(_class_dir)
