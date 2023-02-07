@@ -2,11 +2,8 @@ import shutil
 import os
 import numpy
 
-from ndvi.ndvi import NDVI
-
-class PrepareImages:
+class PrepareData:
   def __init__(self, input_folder, output_folder):
-    self.__ndvi_filter = NDVI()
     self.__input_folder = input_folder
     self.__output_folder = output_folder
 
@@ -22,7 +19,7 @@ class PrepareImages:
 
     return images
 
-  def prepare_images(self, use_ndvi=False):
+  def prepare_images(self):
     if self.__input_folder == self.__output_folder:
       print(f"[ERROR] Input and output folders are same: {self.__input_folder}. Stopped.")
       return False
@@ -60,19 +57,7 @@ class PrepareImages:
 
       # Copy-paste images
       for image_path in train_images:
-        if "N.tif" not in image_path and use_ndvi:
-          self.__ndvi_filter.parallel_filter(
-            image_path,
-            f"{train_folder}/ndvi_{os.path.basename(image_path)}",
-            train_images_count
-          )
         shutil.copy(image_path, train_folder)
 
       for image_path in validation_images:
-        if "N.tif" not in image_path and use_ndvi:
-          self.__ndvi_filter.parallel_filter(
-            image_path,
-            f"{validation_folder}/ndvi_{os.path.basename(image_path)}",
-            validation_images_count
-          )
         shutil.copy(image_path, validation_folder)

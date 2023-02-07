@@ -6,7 +6,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from training.training import Training
-from training.prepare import PrepareImages
+from prepare.data import PrepareData
+from prepare.ndvi import NDVI
 from visualization.visualization import Visualization
 from fitter.fitter import Fitter
 
@@ -18,8 +19,8 @@ def main():
     print(f"[ERROR] Input folder {config.CNN_FOLDER} doesn't exist.")
     return False
 
-  # prepare = PrepareImages(config.CNN_FOLDER, config.DATA_FOLDER)
-  # prepare.prepare_images()
+  NDVI().make_ndvi(config.CNN_FOLDER)
+  # PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
 
   training = Training(config.DATA_FOLDER)
   train_generator, validation_generator = training.get_train_generator()
