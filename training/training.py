@@ -121,7 +121,7 @@ class Training:
         filepath = output_folder + "/vgg-19-model-{epoch:02d}-acc-{val_acc:.2f}.hdf5"
         
         checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
-        early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=5)
+        early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=10)
         history = vgg_final_model.fit(
             train_generator, 
             epochs = epochs,
