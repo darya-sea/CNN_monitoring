@@ -48,15 +48,10 @@ class NDVI:
       self.__processed_images = 0
 
       for image_path in images:
-        output_image = f"{ndvi_folder}/{os.path.basename(image_path)}"
-    
-        if os.path.exists(output_image):
-          output_image = f"{ndvi_folder}/{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
-
         if parallel:
-          self.parallel_filter(image_path, output_image, images_count)
+          self.parallel_filter(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}", images_count)
         else:
-          self.filter(image_path, output_image)
+          self.filter(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}")
 
   def parallel_filter(self, input_image, output_image, total_images):
     if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:
@@ -67,7 +62,7 @@ class NDVI:
 
   @staticmethod
   def filter(input_image, output_image):
-    print(f"Applying NDVI filter on {output_image}...")
+    print(f"Applying NDVI filter on {input_image}...")
 
     def create_colormap(args):
         return matplotlib.colors.LinearSegmentedColormap.from_list(
@@ -93,5 +88,9 @@ class NDVI:
     pyplot.axis('off')
 
     extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+
+    if os.path.exists(output_image):
+      output_image_name = os.path.basename(output_image)
+      output_image = output_image.replace(output_image_name, f"{str(random.randrange(1, 100))}_{output_image_name}")
 
     fig.savefig(output_image, dpi=600, transparent=True, bbox_inches=extent, pad_inches=0)
