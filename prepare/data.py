@@ -1,6 +1,7 @@
 import shutil
 import os
 import numpy
+import random
 
 class PrepareData:
   def __init__(self, input_folder, output_folder):
@@ -57,7 +58,17 @@ class PrepareData:
 
       # Copy-paste images
       for image_path in train_images:
-        shutil.copy(image_path, train_folder)
+        output_image = f"{train_folder}/{os.path.basename(image_path)}"
+
+        if os.path.exists(output_image):
+          output_image = f"{train_folder}/{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
+
+        shutil.copy(image_path, output_image)
 
       for image_path in validation_images:
-        shutil.copy(image_path, validation_folder)
+        output_image = f"{validation_folder}/{os.path.basename(image_path)}"
+
+        if os.path.exists(output_image):
+          output_image = f"{validation_folder}/{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
+
+        shutil.copy(image_path, output_image)

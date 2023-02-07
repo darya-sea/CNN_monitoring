@@ -2,11 +2,18 @@ import imageio
 import numpy
 import matplotlib
 import os
+import random
 
 from matplotlib import pyplot
 from multiprocessing import Pool
 
 class NDVI:
+  def __init__(self):
+    self.__pool_size = 10
+    self.__pool = Pool(self.__pool_size)
+    self.__pool_files = []
+    self.__processed_images = 0
+
   def get_all_images(self, folder):
     images = []
 
@@ -34,30 +41,26 @@ class NDVI:
       images = self.get_all_images(_class_dir)
       images_count = len(images)
 
+      self.__pool_files = []
+      self.__processed_images = 0
+
       for image_path in images:
-        if parallel:
-          self.parallel_filter(
-            image_path,
-            f"{ndvi_folder}/_{os.path.basename(image_path)}",
-            images_count
-          )
-        else:
-          self.filter(
-            image_path,
-            f"{ndvi_folder}/_{os.path.basename(image_path)}"
-          )
-
-  def parallel_filter(self, input_image, output_image, total_images, pool_size=10):
-    pool = Pool(pool_size)
-    pool_files = []
-    processed_images = 0
-
-    if len(pool_files) > pool_size or processed_images == total_images:
-      pool.starmap(NDVI.filter, pool_files)
-      pool_files = []
-    pool_files.append((input_image, output_image))
-    processed_images += 1 
+        output_image = f"{ndvi_folder}/{os.path.basename(image_path)}"
     
+        if os.path.exists(output_image):
+          output_image = f"{ndvi_folder}/{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
+
+        if parallel:
+          self.parallel_filter(image_path, output_image, images_count)
+        else:
+          self.filter(image_path, output_image)
+
+  def parallel_filter(self, input_image, output_image, total_images):
+    if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:
+      self.__pool.starmap(NDVI.filter, self.__pool_files)
+      self.__pool_files = []
+    self.__pool_files.append((input_image, output_image))
+    self.__processed_images += 1 
 
   @staticmethod
   def filter(input_image, output_image):
@@ -87,8 +90,5 @@ class NDVI:
     pyplot.axis('off')
 
     extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-
-    if os.path.exists(output_image):
-      output_image = output_image.replace("_", "__")
 
     fig.savefig(output_image, dpi=600, transparent=True, bbox_inches=extent, pad_inches=0)

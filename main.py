@@ -19,16 +19,16 @@ def main():
     print(f"[ERROR] Input folder {config.CNN_FOLDER} doesn't exist.")
     return False
 
-  NDVI().make_ndvi(config.CNN_FOLDER)
-  # PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
+  NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
+  PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
 
-  training = Training(config.DATA_FOLDER)
-  train_generator, validation_generator = training.get_train_generator()
-  if train_generator and validation_generator:
-      visualization = Visualization()
-      # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
-      history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
-      visualization.process_history(history, f"{config.DATA_FOLDER}/vgg_model")
+  # training = Training(config.DATA_FOLDER)
+  # train_generator, validation_generator = training.get_train_generator()
+  # if train_generator and validation_generator:
+  #     visualization = Visualization()
+  #     # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
+  #     history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
+  #     visualization.process_history(history, f"{config.DATA_FOLDER}/vgg_model")
 
 if __name__ == "__main__":
     main()
