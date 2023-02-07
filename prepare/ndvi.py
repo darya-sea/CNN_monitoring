@@ -87,7 +87,8 @@ class NDVI:
     pyplot.axis('off')
 
     extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+
     if os.path.exists(output_image):
-      output_image = output_image + ".tmp"
+      output_image = output_image.replace("_", "__")
 
     fig.savefig(output_image, dpi=600, transparent=True, bbox_inches=extent, pad_inches=0)
