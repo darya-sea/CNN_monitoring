@@ -22,7 +22,7 @@ class PrepareImages:
 
     return images
 
-  def prepare_images(self):
+  def prepare_images(self, use_ndvi=False):
     if self.__input_folder == self.__output_folder:
       print(f"[ERROR] Input and output folders are same: {self.__input_folder}. Stopped.")
       return False
@@ -61,7 +61,7 @@ class PrepareImages:
 
       # Copy-paste images
       for image_path in train_images:
-        if "N.tif" not in image_path:
+        if "N.tif" not in image_path and use_ndvi:
           self.__ndvi_filter.parallel_filter(
             image_path,
             f"{train_folder}/ndvi_{os.path.basename(image_path)}",
@@ -70,7 +70,7 @@ class PrepareImages:
         shutil.copy(image_path, train_folder)
 
       for image_path in validation_images:
-        if "N.tif" not in image_path:
+        if "N.tif" not in image_path and use_ndvi:
           self.__ndvi_filter.parallel_filter(
             image_path,
             f"{validation_folder}/ndvi_{os.path.basename(image_path)}",
