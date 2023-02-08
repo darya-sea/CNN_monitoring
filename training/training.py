@@ -97,6 +97,7 @@ class Training:
 
     def train(self, train_generator, validation_generator, epochs):
         output_folder = f"{self.__data_folder}/output"
+        backup_folder = f"{self.__data_folder}/backup"
 
         vgg_model = tensorflow.keras.applications.vgg19.VGG19(
             pooling="avg",
@@ -118,8 +119,11 @@ class Training:
         vgg_final_model.compile(loss = "categorical_crossentropy", optimizer= "adam", metrics=["acc"])
 
         os.makedirs(output_folder, exist_ok=True)
+        os.makedirs(backup_folder, exist_ok=True)
+
         filepath = output_folder + "/vgg-19-model-{epoch:02d}-acc-{val_acc:.2f}.hdf5"
         
+        backup_restore = tensorflow.keras.callbacks.BackupAndRestore(backup_dir=backup_folder)
         checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
         early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=10)
         history = vgg_final_model.fit(
@@ -128,7 +132,8 @@ class Training:
             validation_data = validation_generator,
             callbacks=[
                 checkpoint,
-                early_stopping
+                early_stopping,
+                backup_restore
             ],
             verbose=1
         )
