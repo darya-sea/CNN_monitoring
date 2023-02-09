@@ -28,9 +28,7 @@ class NDVI:
     return images
 
   def make_ndvi(self, input_folder, parallel=False):
-    all_classes = os.listdir(input_folder)
-
-    for _class in all_classes:
+    for _class in os.listdir(input_folder):
       _class_dir = f"{input_folder}/{_class}"
 
       if not os.path.isdir(_class_dir):

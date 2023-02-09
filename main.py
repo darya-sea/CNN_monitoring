@@ -20,7 +20,7 @@ def main():
     return False
 
   #NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
-  #PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
+  PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
 
   training = Training(config.DATA_FOLDER)
   train_generator, validation_generator = training.get_train_generator()
