@@ -77,7 +77,7 @@ class Training:
         reduce_lr = ReduceLROnPlateau(monitor="val_loss", factor=0.05, patience=5, min_lr=0.000002)
 
         checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
-        early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=3)
+        early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=10)
 
         history = benchmark_model.fit(
             train_generator,
