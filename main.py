@@ -3,6 +3,8 @@ import config
 import logging
 import warnings
 
+from pprint import pprint
+
 warnings.filterwarnings('ignore')
 
 logging.basicConfig()
@@ -22,7 +24,7 @@ def predict(image_path):
   from training.prediction import Prediction
 
   prediction = Prediction(config.DATA_FOLDER)
-  print(prediction.predict(image_path))
+  pprint(prediction.predict(image_path))
 
 def train():
   from training.training import Training

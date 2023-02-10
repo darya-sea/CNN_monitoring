@@ -1,8 +1,8 @@
 import os
+import json
 import keras
 import numpy
 import keras.preprocessing
-import json
 
 from keras.preprocessing.image import image_utils as keras_image_utils
 
@@ -32,18 +32,27 @@ class Prediction:
 
     return classes
   
-  def predict(self, image_path):
+  def _predict(self, model, image_path):
+
+    print(f"Test image: {image_path}")
+    image = keras_image_utils.load_img(image_path, target_size=(224, 224))
+    input_image = keras_image_utils.img_to_array(image)
+    input_image = numpy.expand_dims(input_image, axis=0)
+    predicted = numpy.argmax(model.predict(input_image))
+
+    return self.load_classes()[str(predicted)]
+  
+  def predict(self, path):
+    results = []
     model =  self.load_model()
 
     if not model:
-      print(f"[ERROR] Couldn't load model from {image_path}")
+      print(f"[ERROR] Models not found.")
       return None
 
-    print(f"Test image: {image_path}")
-    image = keras_image_utils.load_img(image_path, target_size=(224,224))
-    input_image = keras_image_utils.img_to_array(image)
-    input_image = numpy.expand_dims(input_image, axis=0)
-
-    classname = self.load_classes()[str(numpy.argmax(model.predict(input_image)))]
-
-    return classname
+    if os.path.isdir(path):
+      for image_path in os.scandir(path):
+        results.append({image_path.name: self._predict(model, image_path.path)})
+    else:
+      results.append({os.path.basename(image_path): self._predict(model, image_path)})
+    return results
