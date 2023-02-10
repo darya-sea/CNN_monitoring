@@ -4,6 +4,7 @@ import matplotlib
 import os
 import random
 import shutil
+import rasterio
 
 from matplotlib import pyplot
 from multiprocessing import Pool
@@ -22,7 +23,7 @@ class NDVI:
         if entry.is_dir():
           images.extend(self.get_all_images(entry.path))
         else:
-          if ".DS_Store" not in entry.path and "N.tif" not in entry.path:
+          if ".DS_Store" not in entry.path and "C.tif" not in entry.path:
             images.append(entry.path)
 
     return images
@@ -49,14 +50,25 @@ class NDVI:
         if parallel:
           self.parallel_filter(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}", images_count)
         else:
-          self.filter(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}")
+          self.fitter_rasterio(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}")
 
   def parallel_filter(self, input_image, output_image, total_images):
     if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:
-      self.__pool.starmap(NDVI.filter, self.__pool_files)
+      self.__pool.starmap(NDVI.fitter_rasterio, self.__pool_files)
       self.__pool_files = []
     self.__pool_files.append((input_image, output_image))
     self.__processed_images += 1 
+
+  @staticmethod
+  def fitter_rasterio(input_image, output_image):
+    print(f"Applying NDVI filter on {input_image}...")
+
+    with rasterio.open(input_image) as _file:
+      ndvi = _file.read(1)
+
+    output_image = f"{output_image.split('.tif')[0]}.tiff"
+
+    pyplot.imsave(output_image, ndvi, cmap=pyplot.cm.summer)
 
   @staticmethod
   def filter(input_image, output_image):

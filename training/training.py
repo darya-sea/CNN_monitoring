@@ -4,8 +4,7 @@ import tensorflow
 
 from keras import Model
 from keras.models import Sequential
-from keras.layers import Dense, Input, Conv2D, MaxPooling2D, Flatten
-from keras.utils import plot_model
+from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
 from keras.callbacks import ReduceLROnPlateau
 
 class Training:

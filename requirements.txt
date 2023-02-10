@@ -5,6 +5,7 @@ pandas
 imageio
 scipy
 imagecodecs
+rasterio
 tensorflow==2.10
 # tensorflow-macos==2.10
 # tensorflow-metal==0.6
