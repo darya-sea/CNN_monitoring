@@ -1,26 +1,31 @@
-import os
+import sys
 import config
 import logging
 import warnings
 
 warnings.filterwarnings('ignore')
 
-from training.training import Training
-from prepare.data import PrepareData
-from prepare.ndvi import NDVI
-from visualization.visualization import Visualization
 from fitter.fitter import Fitter
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
-def main():
-  if not os.path.exists(config.CNN_FOLDER):
-    print(f"[ERROR] Input folder {config.CNN_FOLDER} doesn't exist.")
-    return False
+def prepare():
+  from prepare.data import PrepareData
+  from prepare.ndvi import NDVI
 
-  #NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
-  #PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
+  NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
+  PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
+
+def predict(image_path):
+  from training.prediction import Prediction
+
+  prediction = Prediction(config.DATA_FOLDER)
+  print(prediction.predict(image_path))
+
+def train():
+  from training.training import Training
+  from visualization.visualization import Visualization
 
   training = Training(config.DATA_FOLDER)
   train_generator, validation_generator = training.get_train_generator()
@@ -31,4 +36,13 @@ def main():
       visualization.process_history(history, f"{config.DATA_FOLDER}/vgg_model")
 
 if __name__ == "__main__":
-    main()
+  if len(sys.argv) > 1:
+    match sys.argv[1]:
+      case "help":
+        print(f"usage: {sys.argv[1]} <prepare|train|predict>")
+      case "prepare":
+        prepare()
+      case "train":
+        train()
+      case "predict":
+        predict(sys.argv[2])
