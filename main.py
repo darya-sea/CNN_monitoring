@@ -10,12 +10,15 @@ from fitter.fitter import Fitter
 logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
-def prepare():
+def prepare(ndvi=None):
   from prepare.data import PrepareData
   from prepare.ndvi import NDVI
 
-  NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
-  PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
+  if ndvi == "ndvi" or ndvi == None:
+    NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
+  
+  if ndvi == "data" or ndvi == None:
+    PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
 
 def predict(image_path):
   from training.prediction import Prediction
@@ -39,10 +42,26 @@ if __name__ == "__main__":
   if len(sys.argv) > 1:
     match sys.argv[1]:
       case "help":
-        print(f"usage: {sys.argv[1]} <prepare|train|predict>")
+        print(
+        f"""
+        usage: {sys.argv[0]} <prepare|train|predict>
+
+        preapre example: 
+          python main.py prepare ndvi
+          python main.py prepare data
+          python main.py prepare 
+        predict example: 
+          python main.py predict "CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
+        train example: 
+          python main.py train
+        """
+        )
       case "prepare":
-        prepare()
+        prepare(sys.argv[2] if len(sys.argv) > 2 else None )
       case "train":
         train()
       case "predict":
-        predict(sys.argv[2])
+        if len(sys.argv) > 2:
+          predict(sys.argv[2])
+        else:
+          print(f"usage: {sys.argv[0]} predict <image_path>")
