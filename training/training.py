@@ -116,7 +116,7 @@ class Training:
 
     vgg_x = Flatten()(last_output)
     vgg_x = Dense(128, activation = "relu")(vgg_x)
-    vgg_x = Dense(5, activation = "sigmoid")(vgg_x)
+    vgg_x = Dense(5, activation = "softmax")(vgg_x)
 
     vgg_final_model = Model(vgg_model.input, vgg_x)
     vgg_final_model.compile(loss = "categorical_crossentropy", optimizer= "adam", metrics=["acc"])

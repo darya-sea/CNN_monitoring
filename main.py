@@ -5,8 +5,6 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-from fitter.fitter import Fitter
-
 logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
@@ -50,10 +48,10 @@ if __name__ == "__main__":
           python main.py prepare ndvi
           python main.py prepare data
           python main.py prepare 
-        predict example: 
-          python main.py predict "CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
         train example: 
           python main.py train
+        predict example: 
+          python main.py predict "CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
         """
         )
       case "prepare":
