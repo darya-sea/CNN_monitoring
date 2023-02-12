@@ -50,17 +50,16 @@ class NDVI:
         if parallel:
           self.parallel_filter(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}", images_count)
         else:
-          self.fitter_rasterio(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}")
+          self.filter_rasterio(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}")
 
   def parallel_filter(self, input_image, output_image, total_images):
     if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:
-      self.__pool.starmap(NDVI.fitter_rasterio, self.__pool_files)
+      self.__pool.starmap(NDVI.filter_rasterio, self.__pool_files)
       self.__pool_files = []
     self.__pool_files.append((input_image, output_image))
     self.__processed_images += 1 
 
-  @staticmethod
-  def fitter_rasterio(input_image, output_image):
+  def filter_rasterio(input_image, output_image):
     print(f"Applying NDVI filter on {input_image}...")
 
     with rasterio.open(input_image) as _file:
@@ -68,9 +67,12 @@ class NDVI:
 
     output_image = f"{output_image.split('.tif')[0]}.tiff"
 
+    if os.path.exists(output_image):
+      output_image_name = os.path.basename(output_image)
+      output_image = output_image.replace(output_image_name, f"{str(random.randrange(1, 100))}_{output_image_name}")
+
     pyplot.imsave(output_image, ndvi, cmap=pyplot.cm.summer)
 
-  @staticmethod
   def filter(input_image, output_image):
     print(f"Applying NDVI filter on {input_image}...")
 
