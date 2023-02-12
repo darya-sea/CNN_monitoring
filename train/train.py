@@ -7,7 +7,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
 from keras.callbacks import ReduceLROnPlateau
 
-class Training:
+class Train:
   def __init__(self, data_folder):
     self.__data_folder = data_folder
     self.__batch_size = 16
@@ -60,7 +60,7 @@ class Training:
     return train_generator, validation_generator
 
   def validation(self, train_generator, validation_generator, benchmark_epoch):
-    output_folder = f"{self.__data_folder}/output"
+    output_folder = f"{self.__data_folder}/output/models"
 
     benchmark_model = Sequential()
     benchmark_model.add(Conv2D(128, kernel_size=7, activation="relu", input_shape=self.__taget_size + (3,)))
@@ -98,7 +98,7 @@ class Training:
     return history
 
   def train(self, train_generator, validation_generator, epochs):
-    output_folder = f"{self.__data_folder}/output"
+    output_folder = f"{self.__data_folder}/output/models"
     backup_folder = f"{self.__data_folder}/backup"
 
     vgg_model = tensorflow.keras.applications.vgg19.VGG19(
