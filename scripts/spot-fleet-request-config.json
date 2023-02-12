@@ -1,0 +1,74 @@
+{
+    "IamFleetRole": "arn:aws:iam::ACCOUNT_ID:role/aws-ec2-spot-fleet-tagging-role",
+    "AllocationStrategy": "priceCapacityOptimized",
+    "TargetCapacity": 1,
+    "SpotPrice": "0.07",
+    "TerminateInstancesWithExpiration": true,
+    "LaunchSpecifications": [],
+    "Type": "maintain",
+    "OnDemandTargetCapacity": 1,
+    "LaunchTemplateConfigs": [
+      {
+        "LaunchTemplateSpecification": {
+          "LaunchTemplateId": "LAUNCH_TEMPLATE",
+          "Version": "$Latest"
+        },
+        "Overrides": [
+          {
+            "InstanceType": "t3a.xlarge"
+          },
+          {
+            "InstanceType": "t3.xlarge"
+          },
+          {
+            "InstanceType": "c5a.xlarge"
+          },
+          {
+            "InstanceType": "c6i.xlarge"
+          },
+          {
+            "InstanceType": "m5.xlarge"
+          },
+          {
+            "InstanceType": "c4.xlarge"
+          },
+          {
+            "InstanceType": "r4.xlarge"
+          },
+          {
+            "InstanceType": "r5n.xlarge"
+          },
+          {
+            "InstanceType": "m6i.xlarge"
+          },
+          {
+            "InstanceType": "t2.xlarge"
+          },
+          {
+            "InstanceType": "r5.xlarge"
+          },
+          {
+            "InstanceType": "c6a.xlarge"
+          },
+          {
+            "InstanceType": "r6i.xlarge"
+          },
+          {
+            "InstanceType": "m6a.xlarge"
+          },
+          {
+            "InstanceType": "r6a.xlarge"
+          },
+          {
+            "InstanceType": "c5n.xlarge"
+          },
+          {
+            "InstanceType": "m5a.xlarge"
+          },
+          {
+            "InstanceType": "c5.xlarge"
+          }
+        ]
+      }
+    ]
+  }
