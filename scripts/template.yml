@@ -9,10 +9,6 @@ Parameters:
     Type: String
     Default: ami-095456c6bc470f947
     Description: "AMI Image ID"
-  RSAKeyName: 
-    Type: String
-    Default: cnn
-    Description: "Key name for EC2 insance access"
 Resources:
   CNNData:
     Type: AWS::S3::Bucket
@@ -68,8 +64,6 @@ Resources:
       LaunchTemplateData: 
         ImageId: 
           Ref: AMIImageID
-        KeyName: 
-          Ref: RSAKeyName
         SecurityGroupIds:
           - sg-67118403
         IamInstanceProfile: 
