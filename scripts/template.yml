@@ -75,6 +75,8 @@ Resources:
           Fn::Base64: !Sub
             - |
               #!/bin/bash
+              #set -e
+
               # Bootstrap script for AWS EC2 instance. 
               INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
               aws ec2 attach-volume --volume-id ${volumeId} --device /dev/xvdf --instance-id $INSTANCE_ID --region ${AWS::Region}
@@ -92,13 +94,26 @@ Resources:
               done
 
               mount /dev/xvdf /mnt
+
+              if [ "$?" != "0" ];
+              then
+                mkfs.ext4 /dev/xvdf
+                mount /dev/xvdf /mnt
+              fi
               cd /mnt
               git clone https://github.com/darya-sea/CNN_monitoring.git
               cd CNN_monitoring
               pip3 install -r requirements.txt -t .
               aws s3 sync s3://${cnnData} DATA
               python3 main.py train
+              rm -rf /mnt/CNN_monitoring/DATA/backup
               aws s3 sync DATA s3://${cnnData}
+              for requiest_id in $(aws ec2 describe-spot-fleet-requests \
+                --query "SpotFleetRequestConfigs[?SpotFleetRequestState=='active'].SpotFleetRequestId" --output text)
+              do
+                aws ec2 cancel-spot-fleet-requests --spot-fleet-request-ids $requiest_id --terminate-instances
+              done
+              rm -rf /mnt/CNN_monitoring/DATA/output
             - volumeId: 
                 Ref: CNNDataVolume
               cnnData: 

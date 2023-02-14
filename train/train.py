@@ -52,10 +52,10 @@ class Train:
         target_size=self.__taget_size
       )
 
-    with open(f"{self.__data_folder}/validation_classes.json", "w") as _file:
-      _file.write(
-        json.dumps({v: k for k, v in validation_generator.class_indices.items()})
-      )
+      with open(f"{self.__data_folder}/validation_classes.json", "w") as _file:
+        _file.write(
+          json.dumps({v: k for k, v in validation_generator.class_indices.items()})
+        )
 
     return train_generator, validation_generator
 
