@@ -66,6 +66,9 @@ Resources:
           Ref: AMIImageID
         SecurityGroupIds:
           - sg-67118403
+        Placement:
+          AvailabilityZone: 
+            Fn::Sub: "${AWS::Region}a"
         IamInstanceProfile: 
           Arn: !GetAtt CNNEC2InstanceProfile.Arn
         UserData: 
