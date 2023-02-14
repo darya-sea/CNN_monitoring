@@ -7,7 +7,7 @@ Parameters:
     Description: "CNN Data"
   AMIImageID: 
     Type: String
-    Default: ami-095456c6bc470f947
+    Default: ami-0e8ac16acd5e85cc4
     Description: "AMI Image ID"
 Resources:
   CNNData:
@@ -53,7 +53,7 @@ Resources:
   CNNDataVolume:
     Type: AWS::EC2::Volume
     Properties: 
-      Size: 30
+      Size: 40
       VolumeType: standard
       AvailabilityZone: 
         Fn::Sub: "${AWS::Region}a"
@@ -100,20 +100,27 @@ Resources:
                 mkfs.ext4 /dev/xvdf
                 mount /dev/xvdf /mnt
               fi
+
               cd /mnt
-              git clone https://github.com/darya-sea/CNN_monitoring.git
-              cd CNN_monitoring
+
+              if [ -d "/mnt/CNN_monitoring" ];
+              then
+                cd CNN_monitoring
+                git pull --rebase
+              else
+                git clone https://github.com/darya-sea/CNN_monitoring.git
+                cd CNN_monitoring
+              fi
+
               pip3 install -r requirements.txt -t .
               aws s3 sync s3://${cnnData} DATA
               python3 main.py train
-              rm -rf /mnt/CNN_monitoring/DATA/backup
               aws s3 sync DATA s3://${cnnData}
               for requiest_id in $(aws ec2 describe-spot-fleet-requests \
-                --query "SpotFleetRequestConfigs[?SpotFleetRequestState=='active'].SpotFleetRequestId" --output text)
+                --query "SpotFleetRequestConfigs[?SpotFleetRequestState=='active'].SpotFleetRequestId" --region ${AWS::Region} --output text)
               do
-                aws ec2 cancel-spot-fleet-requests --spot-fleet-request-ids $requiest_id --terminate-instances
+                aws ec2 cancel-spot-fleet-requests --spot-fleet-request-ids $requiest_id --region ${AWS::Region} --terminate-instances
               done
-              rm -rf /mnt/CNN_monitoring/DATA/output
             - volumeId: 
                 Ref: CNNDataVolume
               cnnData: 
