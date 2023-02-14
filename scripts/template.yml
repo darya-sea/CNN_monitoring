@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CSE FNS Core
+Parameters:
+  BucketName: 
+    Type: String
+    Default: cnn-data
+    Description: "CNN Data"
+  AMIImageID: 
+    Type: String
+    Default: ami-095456c6bc470f947
+    Description: "AMI Image ID"
+  RSAKeyName: 
+    Type: String
+    Default: cnn
+    Description: "Key name for EC2 insance access"
+Resources:
+  CNNData:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 
+        Ref: BucketName
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+          - ServerSideEncryptionByDefault: 
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+  
+  CNNEC2IamRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      Description: "IAM Role for CNN EC2 instance"
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement: 
+          - Effect: Allow
+            Principal: 
+              Service: es.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns: 
+        - Fn::Sub: 
+            arn:${AWS::Partition}:iam::aws:policy/AmazonEC2FullAccess
+        - Fn::Sub: 
+            arn:${AWS::Partition}:iam::aws:policy/AmazonS3FullAccess
+        - Fn::Sub: 
+            arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  CNNEC2InstanceProfile: 
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: 
+        - Ref: CNNEC2IamRole
+
+  CNNDataVolume:
+    Type: AWS::EC2::Volume
+    Properties: 
+      Size: 30
+      VolumeType: standard
+      AvailabilityZone: 
+        Fn::Sub: "${AWS::Region}a"
+
+  CNNTrainInstanceTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties: 
+      LaunchTemplateData: 
+        ImageId: 
+          Ref: AMIImageID
+        KeyName: 
+          Ref: RSAKeyName
+        SecurityGroupIds:
+          - sg-67118403
+        IamInstanceProfile: 
+          Arn: !GetAtt CNNEC2InstanceProfile.Arn
+        UserData: 
+          Fn::Base64: !Sub
+            - |
+              #!/bin/bash
+              # Bootstrap script for AWS EC2 instance. 
+              INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+              aws ec2 attach-volume --volume-id ${volumeId} --device /dev/xvdf --instance-id $INSTANCE_ID --region ${AWS::Region}
+              DATA_STATE="unknown"
+              until [ "$DATA_STATE" == "attached" ]; do
+                  DATA_STATE=$(aws ec2 describe-volumes \
+                  --region ${AWS::Region} \
+                  --filters \
+                      Name=attachment.instance-id,Values=$INSTANCE_ID \
+                      Name=attachment.device,Values=/dev/xvdf \
+                  --query Volumes[].Attachments[].State \
+                  --output text)
+
+                  sleep 5
+              done
+
+              mount /dev/xvdf /mnt
+              cd /mnt
+              git clone https://github.com/darya-sea/CNN_monitoring.git
+              cd CNN_monitoring
+              pip3 install -r requirements.txt -t .
+              aws s3 sync s3://${cnnData} DATA
+              python3 main.py train
+              aws s3 sync DATA s3://${cnnData}
+            - volumeId: 
+                Ref: CNNDataVolume
+              cnnData: 
+                Ref: CNNData
+
+Outputs:
+  CNNTrainInstanceTemplate:
+    Description: "Exports for CNNTrainInstanceTemplate"
+    Value: 
+      Ref: CNNTrainInstanceTemplate
+    Export:
+      Name: CNNTrainInstanceTemplate

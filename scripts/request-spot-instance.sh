@@ -3,7 +3,7 @@
 # This script to request spot intances
 
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-LAUNCH_TEMPLATE="lt-0f219d87670ad4609"
+LAUNCH_TEMPLATE=$(aws cloudformation list-exports --query "Exports[?Name=='CNNTrainInstanceTemplate'].Value" --out text)
 
 sed -i '' "s/ACCOUNT_ID/$ACCOUNT_ID/g" spot-fleet-request-config.json
 sed -i '' "s/LAUNCH_TEMPLATE/$LAUNCH_TEMPLATE/g" spot-fleet-request-config.json
