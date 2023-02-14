@@ -38,7 +38,7 @@ Resources:
         Statement: 
           - Effect: Allow
             Principal: 
-              Service: es.amazonaws.com
+              Service: ec2.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns: 
         - Fn::Sub: 
