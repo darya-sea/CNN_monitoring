@@ -126,7 +126,7 @@ def run_prediction(image_folder, classes_file, model_file):
   if classes_file:
     predict = Prediction()
     classes = predict.load_classes(classes_file)
-    predict.predict(image_folder, classes, model_file)
+    return predict.predict(image_folder, classes, model_file)
   else:
     window["-PRED_RESULTS-"].update(f'{window["-PRED_RESULTS-"].get()}\nClasses file not found!')
 
