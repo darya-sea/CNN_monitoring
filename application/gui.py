@@ -32,7 +32,7 @@ def get_layout():
     ],
     [gui.CBox("Apply NDVI", size=(12, 1), key="-PREP_APPLY_NDVI-")],
     [gui.Button(button_text="Run", size=(10,1), key="-RUN_PREPARATION-")],
-    [gui.Multiline("", disabled=True, background_color="gray", size=(700, 493), key="-PREP_RESULTS-")],
+    [gui.Multiline("", disabled=True, background_color="gray", size=(70, 20), key="-PREP_RESULTS-")],
   ]
   traning = [
     [
@@ -45,7 +45,7 @@ def get_layout():
       gui.In(default_text=config.TRAINING_EPOCHS, size=(8, 1), enable_events=True, key="-TRAIN_DATA_FOLDER-")
     ],
     [gui.Button(button_text="Run", size=(10, 1), key="-RUN_TRAINING-")],
-    [gui.Multiline("", disabled=True, background_color="gray", size=(700, 494), key="-TRAIN_RESULTS-")]
+    [gui.Multiline("", disabled=True, background_color="gray", size=(70, 22), key="-TRAIN_RESULTS-")]
   ]
 
   prediction = [
@@ -65,22 +65,7 @@ def get_layout():
       gui.FilesBrowse(initial_folder=config.DATA_FOLDER, size=(10, 1))
     ],
     [gui.Button(button_text="Run", size=(10, 1), key="-RUN_PREDICTION-")],
-    [gui.Multiline("", disabled=True, background_color="gray", size=(700, 15), key="-PRED_RESULTS-")],
-    [
-      gui.Column(
-        [[
-          gui.Frame(
-            "",
-            [[
-              gui.Canvas(key='-PREP_CANVAS-', expand_x=True, expand_y=True)
-            ]],
-            size=(700, 776)
-          )
-        ]], 
-        scrollable=True, 
-        vertical_scroll_only=True
-      )
-    ]
+    [gui.Multiline("", disabled=True, background_color="gray", size=(70, 20), key="-PRED_RESULTS-")]
   ]
 
   layout = [
@@ -108,7 +93,7 @@ def perform_long_operation(window, results_key, func, *args):
   window.write_event_value(f"{results_key[:-1]}_EVENT-", results)
   window[results_key].update(f"{window[results_key].get()}\nDone!")
 
-window = gui.Window("CNN Monitoring", get_layout(), size=(700, 800), font=("Arial", 12))
+window = gui.Window("CNN Monitoring", get_layout(), font=("Arial", 12))
 
 while True:
     event, values = window.read()
@@ -182,22 +167,9 @@ while True:
         else:
           window["-PRED_RESULTS-"].update(f'{window["-PRED_RESULTS-"].get()}\nClasses file not found!')
       case "-PRED_RESULTS_EVENT-":
-        images_count = len(values["-PRED_RESULTS_EVENT-"])
-        count = 1
-
-        figure = matplotlib.figure.Figure(figsize=(4, 4))
-  
-        for result in values["-PRED_RESULTS_EVENT-"]:
-          for image_path, image_class in result.items():
-            axes = figure.add_subplot(round(images_count/2) + 1, 2, count)
-            axes.axis('off')
-            axes.imshow(matplotlib.image.imread(image_path))
-            axes.set_title(image_class, fontsize=10)
-            count += 1 
-
-        figure_canvas_agg = FigureCanvasTkAgg(figure, window['-PREP_CANVAS-'].TKCanvas)
-        figure_canvas_agg.draw()
-        figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+        # predict = Prediction()
+        # predict.show_images()
+        pass
       case "OK":
         break
       case gui.WIN_CLOSED:
