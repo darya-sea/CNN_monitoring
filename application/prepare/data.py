@@ -52,10 +52,10 @@ class PrepareData:
 
       # View count of images after partition
       print(f"""
-          Data for '{_class}'
-          Images: {images_count}
-          Training: {train_images_count}
-          Validation: {validation_images_count}
+        Data for '{_class}'
+        Images: {images_count}
+        Training: {train_images_count}
+        Validation: {validation_images_count}
       """)
 
       # Copy-paste images

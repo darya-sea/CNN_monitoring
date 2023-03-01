@@ -91,10 +91,12 @@ def perform_long_operation(window, results_key, func, *args):
       else:
         window[results_key].update(message)
     else:
-      window[results_key].update(f'{window[results_key].get()}\n{str(message)}')
+      previous_message = window[results_key].get()
+      window[results_key].update(f'{str(message)}\n{previous_message}')
 
   def print_wrapper(message, *args, **kwargs):
-    window[results_key].update(f'{window[results_key].get()}\n{str(message)}')
+    previous_message = window[results_key].get()
+    window[results_key].update(f'{str(message)}\n{previous_message}')
 
   builtins.print=print_wrapper
 
@@ -104,7 +106,6 @@ def perform_long_operation(window, results_key, func, *args):
   results = func(*args)
 
   window.write_event_value(f"{results_key[:-1]}_EVENT-", results)
-  window[results_key].update(f"{window[results_key].get()}\nDone!")
 
 def run_preparation(cnn_folder, data_folder, ndvi=False):
   if ndvi:
@@ -138,6 +139,7 @@ def run_training(data_folder, traning_epochs):
   if train_generator and validation_generator:
     training.train(train_generator, validation_generator, traning_epochs)
 
+thread = None
 window = gui.Window("CNN Monitoring", get_layout(), font=("Arial", 12))
 
 while True:
@@ -145,7 +147,10 @@ while True:
 
     match event:
       case "-RUN_PREPARATION-":
-        window.start_thread(
+        if thread and thread.is_alive():
+          continue
+
+        thread = window.start_thread(
           lambda: perform_long_operation(
             window, "-PREP_RESULTS-",
             run_preparation,
@@ -157,7 +162,10 @@ while True:
         )
 
       case "-RUN_TRAINING-":
-        window.start_thread(
+        if thread and thread.is_alive():
+          continue
+
+        thread = window.start_thread(
           lambda: perform_long_operation(
             window, 
             "-TRAIN_RESULTS-",
@@ -168,7 +176,10 @@ while True:
           ('-THREAD-', '-THEAD ENDED-')
         )
       case "-RUN_PREDICTION-":
-        window.start_thread(
+        if thread and thread.is_alive():
+          continue
+
+        thread = window.start_thread(
           lambda: perform_long_operation(
             window, 
             "-PRED_RESULTS-", 
