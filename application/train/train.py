@@ -52,12 +52,11 @@ class Train:
         target_size=self.__taget_size
       )
 
-      with open(f"{self.__data_folder}/validation_classes.json", "w") as _file:
-        _file.write(
-          json.dumps({v: k for k, v in validation_generator.class_indices.items()})
-        )
-
     return train_generator, validation_generator
+
+  def save_classes(self, validation_generator, classes_file):
+    with open(classes_file, "w") as _file:
+      _file.write(json.dumps({v: k for k, v in validation_generator.class_indices.items()}))
 
   def validation(self, train_generator, validation_generator, benchmark_epoch):
     output_folder = f"{self.__data_folder}/output/models"
@@ -101,7 +100,7 @@ class Train:
     output_folder = f"{self.__data_folder}/output/models"
     backup_folder = f"{self.__data_folder}/backup"
 
-    vgg_model = tensorflow.keras.applications.vgg19.VGG19(
+    vgg_model = tensorflow.keras.applications.vgg16.VGG16(
       pooling="avg",
       weights="imagenet",
       include_top=False,

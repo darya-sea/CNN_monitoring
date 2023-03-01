@@ -23,8 +23,12 @@ def prepare(ndvi=None):
 def predict(image_path):
   from train.prediction import Prediction
 
-  prediction = Prediction(config.DATA_FOLDER)
-  pprint(prediction.predict(image_path))
+  prediction = Prediction()
+
+  model_file = predict.get_best_model(f"{config.DATA_FOLDER}/output/models")
+  classes = predict.load_classes(f"{config.DATA_FOLDER}/validation_classes.json")
+
+  pprint(prediction.predict(image_path, classes, model_file))
 
 def train():
   from train.train import Train
@@ -33,6 +37,7 @@ def train():
   training = Train(config.DATA_FOLDER)
   train_generator, validation_generator = training.get_train_generator()
   if train_generator and validation_generator:
+      training.save_classes(validation_generator, f"{config.DATA_FOLDER}/validation_classes.json")
       visualization = Visualization()
       # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
       history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)

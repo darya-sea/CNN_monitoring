@@ -10,12 +10,6 @@ from matplotlib import pyplot
 from multiprocessing import Pool
 
 class NDVI:
-  def __init__(self):
-    self.__pool_size = 10
-    self.__pool = Pool(self.__pool_size)
-    self.__pool_files = []
-    self.__processed_images = 0
-
   def get_all_images(self, folder):
     images = []
 
@@ -29,6 +23,12 @@ class NDVI:
     return images
 
   def make_ndvi(self, input_folder, parallel=False):
+    if parallel:
+      self.__pool_size = 10
+      self.__pool = Pool(self.__pool_size)
+      self.__pool_files = []
+      self.__processed_images = 0
+
     for _class in os.listdir(input_folder):
       _class_dir = f"{input_folder}/{_class}"
 
@@ -50,7 +50,7 @@ class NDVI:
         if parallel:
           self.parallel_filter(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}", images_count)
         else:
-          self.filter_rasterio(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}")
+          NDVI.filter_rasterio(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}")
 
   def parallel_filter(self, input_image, output_image, total_images):
     if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:

@@ -131,8 +131,10 @@ dmypy.json
 CNN*backup
 CNN/*
 DATA/*
+_DATA/*
 
 .DS_Store
 test
 
 settings.json
+.venv

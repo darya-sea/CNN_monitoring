@@ -120,6 +120,7 @@ Resources:
                 --query "SpotFleetRequestConfigs[?SpotFleetRequestState=='active'].SpotFleetRequestId" --region ${AWS::Region} --output text)
               do
                 aws ec2 cancel-spot-fleet-requests --spot-fleet-request-ids $requiest_id --region ${AWS::Region} --terminate-instances
+                aws ec2 delete-volume --volume-id ${volumeId} --region ${AWS::Region}
               done
             - volumeId: 
                 Ref: CNNDataVolume
