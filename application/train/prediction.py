@@ -9,9 +9,6 @@ import matplotlib.image
 from keras.preprocessing.image import image_utils as keras_image_utils
 
 class Prediction:
-  def __init__(self):
-    self.__last_results = []
-
   def get_best_model(self, models_path):
     if not os.path.exists(models_path):
       print(f"[ERROR] Models folder {models_path} doesn't exist.")
