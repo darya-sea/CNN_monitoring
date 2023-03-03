@@ -89,8 +89,7 @@ def draw_prediction(results):
   count = 1
 
   layout = [
-      [gui.Canvas(key='-CANVAS-')],
-      [gui.Button('Ok')],
+    [gui.Canvas(key='-CANVAS-')]
   ]
   sub_window = gui.Window(
     'Prediction result',
