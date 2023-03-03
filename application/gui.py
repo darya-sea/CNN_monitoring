@@ -3,15 +3,16 @@ import logging
 import warnings
 import builtins
 import keras.utils.io_utils
+import matplotlib
 
 import PySimpleGUI as gui
 
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from prepare.data import PrepareData
 from prepare.ndvi import NDVI
 
 from train.train import Train
 from train.prediction import Prediction
-from visualization.visualization import Visualization
 
 warnings.filterwarnings('ignore')
 
@@ -80,7 +81,41 @@ def get_layout():
       )
     ]
   ]
+
   return layout
+
+def draw_prediction(results):
+  images_count = len(results)
+  count = 1
+
+  layout = [
+      [gui.Canvas(key='-CANVAS-')],
+      [gui.Button('Ok')],
+  ]
+  sub_window = gui.Window(
+    'Prediction result',
+    layout, 
+    element_justification='center',
+    finalize=True,
+    resizable=True,
+    font=("Arial", 12)
+  )
+
+  figure = matplotlib.figure.Figure(figsize=(20, 20))
+
+  for result in results:
+    for image_path, image_class in result.items():
+      axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
+      axes.axis('off')
+      axes.imshow(matplotlib.image.imread(image_path))
+      axes.set_title(image_class, fontsize=10)
+      count += 1 
+
+  figure_canvas_agg = FigureCanvasTkAgg(figure, sub_window['-CANVAS-'].TKCanvas)
+  figure_canvas_agg.draw()
+  figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+
+  sub_window.read(close=True)
 
 def perform_long_operation(window, results_key, func, *args):
   def print_msg(message, line_break=True):
@@ -191,8 +226,7 @@ while True:
           ('-THREAD-', '-THEAD ENDED-')
         )
       case "-PRED_RESULTS_EVENT-":
-        predict = Prediction()
-        predict.show_images(values["-PRED_RESULTS_EVENT-"])
+        draw_prediction(values["-PRED_RESULTS_EVENT-"])
       case "OK":
         break
       case gui.WIN_CLOSED:
