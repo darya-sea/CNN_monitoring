@@ -56,16 +56,19 @@ class Prediction:
       _file.write(json.dumps(results))
 
   def show_images(self, results):
+    results = results[:12]
+
     images_count = len(results)
     count = 1
-    figure = matplotlib.pyplot.figure(figsize=(8, 8))
+  
+    figure = matplotlib.pyplot.figure(figsize=(15, images_count*3))
   
     for result in results:
       for image_path, image_class in result.items():
-        axes = figure.add_subplot(round(images_count/3) + 1, 3, count)
+        axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
         axes.axis('off')
-        axes.imshow(matplotlib.image.imread(image_path))
-        axes.set_title(image_class)
+        axes.imshow(matplotlib.image.imread(image_path), aspect="auto")
+        axes.set_title(image_class, fontsize=10)
         count += 1 
 
     matplotlib.pyplot.show()

@@ -28,7 +28,9 @@ def predict(image_path):
   model_file = predict.get_best_model(f"{config.DATA_FOLDER}/output/models")
   classes = predict.load_classes(f"{config.DATA_FOLDER}/validation_classes.json")
 
-  pprint(predict.predict(image_path, classes, model_file))
+  resutls = predict.predict(image_path, classes, model_file)
+  #predict.show_images(resutls)
+  pprint(resutls)
 
 def train():
   from train.train import Train

@@ -4,6 +4,7 @@ import warnings
 import builtins
 import keras.utils.io_utils
 import matplotlib
+import matplotlib.pyplot
 import os
 
 import PySimpleGUI as gui
@@ -87,7 +88,7 @@ def get_layout():
   return layout
 
 def draw_prediction(results):
-  results = results[:10]
+  results = results[:12]
 
   images_count = len(results)
 
@@ -108,19 +109,20 @@ def draw_prediction(results):
     font=("Arial", 12)
   )
 
-  figure = matplotlib.figure.Figure(figsize=(15, images_count*3))
+  figure = matplotlib.pyplot.figure(figsize=(15, images_count*3))
+  figure.subplots_adjust(top=0.9, bottom=0.10, left=0.01, right=0.99, hspace=0.2, wspace=0.5)
 
   for result in results:
     for image_path, image_class in result.items():
       axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
       axes.axis('off')
-      axes.imshow(matplotlib.image.imread(image_path))
+      axes.imshow(matplotlib.image.imread(image_path), aspect="auto")
       axes.set_title(image_class, fontsize=10)
       count += 1 
 
   figure_canvas_agg = FigureCanvasTkAgg(figure, sub_window['-CANVAS-'].TKCanvas)
   figure_canvas_agg.draw()
-  figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+  figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=True)
 
   sub_window.read(close=True)
 
