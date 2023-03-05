@@ -117,7 +117,7 @@ def draw_prediction(results):
       axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
       axes.axis('off')
       axes.imshow(matplotlib.image.imread(image_path), aspect="auto")
-      axes.set_title(image_class, fontsize=10)
+      axes.set_title(image_class, fontsize=9)
       count += 1 
 
   figure_canvas_agg = FigureCanvasTkAgg(figure, sub_window['-CANVAS-'].TKCanvas)
