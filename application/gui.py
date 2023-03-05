@@ -90,6 +90,10 @@ def draw_prediction(results):
   results = results[:10]
 
   images_count = len(results)
+
+  if images_count == 0:
+    return
+
   count = 1
 
   layout = [

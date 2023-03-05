@@ -23,12 +23,12 @@ def prepare(ndvi=None):
 def predict(image_path):
   from train.prediction import Prediction
 
-  prediction = Prediction()
+  predict = Prediction()
 
   model_file = predict.get_best_model(f"{config.DATA_FOLDER}/output/models")
   classes = predict.load_classes(f"{config.DATA_FOLDER}/validation_classes.json")
 
-  pprint(prediction.predict(image_path, classes, model_file))
+  pprint(predict.predict(image_path, classes, model_file))
 
 def train():
   from train.train import Train
