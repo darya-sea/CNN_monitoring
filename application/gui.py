@@ -110,7 +110,7 @@ def draw_prediction(results):
   )
 
   figure = matplotlib.pyplot.figure(figsize=(15, images_count*3))
-  figure.subplots_adjust(top=0.9, bottom=0.10, left=0.01, right=0.99, hspace=0.2, wspace=0.5)
+  figure.subplots_adjust(top=0.9, bottom=0.10, left=0.01, right=0.99, hspace=0.21, wspace=0.5)
 
   for result in results:
     for image_path, image_class in result.items():
