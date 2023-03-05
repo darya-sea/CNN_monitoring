@@ -14,6 +14,7 @@ from prepare.ndvi import NDVI
 
 from train.train import Train
 from train.prediction import Prediction
+from visualization.visualization import Visualization
 
 warnings.filterwarnings('ignore')
 
@@ -86,7 +87,7 @@ def get_layout():
   return layout
 
 def draw_prediction(results):
-  results = results[:15]
+  results = results[:10]
 
   images_count = len(results)
   count = 1
@@ -164,6 +165,7 @@ def run_prediction(image_folder, classes_file, model_file):
 
   if classes_file:
     predict = Prediction()
+
     classes = predict.load_classes(classes_file)
     resutls = predict.predict(image_folder, classes, model_file)
     predict.save_results(f"{os.path.dirname(image_folder)}/results.json", resutls)
@@ -174,11 +176,15 @@ def run_prediction(image_folder, classes_file, model_file):
 
 def run_training(data_folder, traning_epochs):
   training = Train(data_folder)
+  visualization = Visualization()
+  
   train_generator, validation_generator = training.get_train_generator()
-  training.save_classes(validation_generator, f'{data_folder}/validation_classes.json')
+  training.save_classes(validation_generator, f"{data_folder}/validation_classes.json")
 
   if train_generator and validation_generator:
-    training.train(train_generator, validation_generator, traning_epochs)
+    history = training.train(train_generator, validation_generator, traning_epochs)
+    visualization.save_history(history, f"{data_folder}/output")
+    visualization.plot_accuracy(history, f"{data_folder}/output")
 
 thread = None
 window = gui.Window("CNN Monitoring", get_layout(), font=("Arial", 12))

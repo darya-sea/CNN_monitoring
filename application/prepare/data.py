@@ -12,10 +12,10 @@ class PrepareData:
     images = []
 
     for entry in os.scandir(folder):
-        if entry.is_dir() and "NDVI" in folder:
+        if entry.is_dir():
           images.extend(self.get_all_images(entry.path))
         else:
-          if ".DS_Store" not in entry.path:
+          if entry.path.endswith((".tiff", ".tif", ".png", ".jpg", ".jpeg")):
             images.append(entry.path)
 
     return images

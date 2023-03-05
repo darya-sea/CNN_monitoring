@@ -31,7 +31,6 @@ class Prediction:
     return classes
   
   def _predict(self, model, image_path):
-
     print(f"Test image: {image_path}")
     image = keras_image_utils.load_img(image_path, target_size=(224, 224))
     input_image = keras_image_utils.img_to_array(image)
@@ -45,9 +44,11 @@ class Prediction:
 
     if os.path.isdir(path):
       for image_path in os.scandir(path):
-        results.append({image_path.path: classes[self._predict(model, image_path.path)]})
+        if image_path.path.endswith((".tiff", ".tif", ".png", ".jpg", ".jpeg")):
+          results.append({image_path.path: classes[self._predict(model, image_path.path)]})
     else:
-      results.append({path: classes[self._predict(model, path)]})
+      if path.path.endswith((".tiff", ".tif", ".png", ".jpg", ".jpeg")):
+        results.append({path: classes[self._predict(model, path)]})
     return results
   
   def save_results(self, path: str, results: list):
