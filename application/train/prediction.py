@@ -50,6 +50,10 @@ class Prediction:
       results.append({path: classes[self._predict(model, path)]})
     return results
   
+  def save_results(self, path: str, results: list):
+    with open(path, "w") as _file:
+      _file.write(json.dumps(results))
+
   def show_images(self, results):
     images_count = len(results)
     count = 1

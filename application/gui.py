@@ -4,6 +4,7 @@ import warnings
 import builtins
 import keras.utils.io_utils
 import matplotlib
+import os
 
 import PySimpleGUI as gui
 
@@ -85,6 +86,8 @@ def get_layout():
   return layout
 
 def draw_prediction(results):
+  results = results[:15]
+
   images_count = len(results)
   count = 1
 
@@ -100,7 +103,7 @@ def draw_prediction(results):
     font=("Arial", 12)
   )
 
-  figure = matplotlib.figure.Figure(figsize=(20, 20))
+  figure = matplotlib.figure.Figure(figsize=(15, images_count*3))
 
   for result in results:
     for image_path, image_class in result.items():
@@ -161,7 +164,9 @@ def run_prediction(image_folder, classes_file, model_file):
   if classes_file:
     predict = Prediction()
     classes = predict.load_classes(classes_file)
-    return predict.predict(image_folder, classes, model_file)
+    resutls = predict.predict(image_folder, classes, model_file)
+    predict.save_results(f"{os.path.dirname(image_folder)}/results.json", resutls)
+    return resutls
   else:
     window["-PRED_RESULTS-"].update(f'{window["-PRED_RESULTS-"].get()}\nClasses file not found!')
 

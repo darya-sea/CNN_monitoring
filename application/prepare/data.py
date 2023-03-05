@@ -12,7 +12,7 @@ class PrepareData:
     images = []
 
     for entry in os.scandir(folder):
-        if entry.is_dir():
+        if entry.is_dir() and "NDVI" in folder:
           images.extend(self.get_all_images(entry.path))
         else:
           if ".DS_Store" not in entry.path:
