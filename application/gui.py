@@ -149,6 +149,7 @@ def run_preparation(cnn_folder, data_folder, ndvi=False):
     NDVI().make_ndvi(cnn_folder)
   
   PrepareData(cnn_folder, data_folder).prepare_images()
+  window["-PREP_RESULTS-"].update(f'Done!\n{window["-PREP_RESULTS-"].get()}')
 
 def run_prediction(image_folder, classes_file, model_file):
   window["-PRED_RESULTS-"].update("")
@@ -166,9 +167,10 @@ def run_prediction(image_folder, classes_file, model_file):
     classes = predict.load_classes(classes_file)
     resutls = predict.predict(image_folder, classes, model_file)
     predict.save_results(f"{os.path.dirname(image_folder)}/results.json", resutls)
+    window["-PRED_RESULTS-"].update(f'Done!\n{window["-PRED_RESULTS-"].get()}')
     return resutls
   else:
-    window["-PRED_RESULTS-"].update(f'{window["-PRED_RESULTS-"].get()}\nClasses file not found!')
+    window["-PRED_RESULTS-"].update(f'Classes file not found!\n{window["-PRED_RESULTS-"].get()}')
 
 def run_training(data_folder, traning_epochs):
   training = Train(data_folder)
