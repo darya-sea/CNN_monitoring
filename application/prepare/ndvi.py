@@ -29,18 +29,18 @@ class NDVI:
       self.__pool_files = []
       self.__processed_images = 0
 
-    for _class in os.listdir(input_folder):
-      _class_dir = f"{input_folder}/{_class}"
+    for plant_name in os.listdir(input_folder):
+      plant_dir = f"{input_folder}/{plant_name}"
 
-      if not os.path.isdir(_class_dir):
+      if not os.path.isdir(plant_dir):
         continue
 
-      ndvi_folder = f"{_class_dir}/NDVI"
+      ndvi_folder = f"{plant_dir}/NDVI"
 
       shutil.rmtree(ndvi_folder, ignore_errors=True)
       os.makedirs(ndvi_folder, exist_ok=True)
 
-      images = self.get_all_images(_class_dir)
+      images = self.get_all_images(plant_dir)
       images_count = len(images)
 
       self.__pool_files = []
