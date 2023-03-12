@@ -3,7 +3,6 @@ numpy
 matplotlib
 pandas
 imageio
-scipy
 imagecodecs
 rasterio
 boto3

@@ -10,47 +10,54 @@ warnings.filterwarnings('ignore')
 logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
-def prepare(ndvi=None):
-  from prepare.data import PrepareData
-  from prepare.ndvi import NDVI
 
-  if ndvi == "ndvi" or ndvi == None:
-    NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
-  
-  if ndvi == "data" or ndvi == None:
-    PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
+def prepare(ndvi=None):
+    from prepare.data import PrepareData
+    from prepare.ndvi import NDVI
+
+    if ndvi == "ndvi" or ndvi == None:
+        NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
+
+    if ndvi == "data" or ndvi == None:
+        PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
+
 
 def predict(image_path):
-  from train.prediction import Prediction
+    from train.prediction import Prediction
 
-  predict = Prediction()
+    predict = Prediction()
 
-  model_file = predict.get_best_model(f"{config.DATA_FOLDER}/output/models")
-  classes = predict.load_classes(f"{config.DATA_FOLDER}/validation_classes.json")
+    model_file = predict.get_best_model(f"{config.DATA_FOLDER}/output/models")
+    classes = predict.load_classes(
+        f"{config.DATA_FOLDER}/validation_classes.json")
 
-  resutls = predict.predict(image_path, classes, model_file)
-  #predict.show_images(resutls)
-  pprint(resutls)
+    resutls = predict.predict(image_path, classes, model_file)
+    # predict.show_images(resutls)
+    pprint(resutls)
+
 
 def train():
-  from train.train import Train
-  from visualization.visualization import Visualization
+    from train.train import Train
+    from visualization.visualization import Visualization
 
-  training = Train(config.DATA_FOLDER)
-  train_generator, validation_generator = training.get_train_generator()
-  if train_generator and validation_generator:
-      training.save_classes(validation_generator, f"{config.DATA_FOLDER}/validation_classes.json")
-      visualization = Visualization()
-      # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
-      history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
-      # visualization.process_history(history, f"{config.DATA_FOLDER}/output/history")
+    training = Train(config.DATA_FOLDER)
+    train_generator, validation_generator = training.get_train_generator()
+    if train_generator and validation_generator:
+        training.save_classes(validation_generator,
+                              f"{config.DATA_FOLDER}/validation_classes.json")
+        visualization = Visualization()
+        # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
+        history = training.train(
+            train_generator, validation_generator, config.TRAINING_EPOCHS)
+        # visualization.process_history(history, f"{config.DATA_FOLDER}/output/history")
+
 
 if __name__ == "__main__":
-  if len(sys.argv) > 1:
-    match sys.argv[1]:
-      case "help":
-        print(
-        f"""
+    if len(sys.argv) > 1:
+        match sys.argv[1]:
+            case "help":
+                print(
+                    f"""
         usage: {sys.argv[0]} <prepare|train|predict>
 
         preapre example: 
@@ -62,13 +69,13 @@ if __name__ == "__main__":
         predict example: 
           python main.py predict "CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
         """
-        )
-      case "prepare":
-        prepare(sys.argv[2] if len(sys.argv) > 2 else None )
-      case "train":
-        train()
-      case "predict":
-        if len(sys.argv) > 2:
-          predict(sys.argv[2])
-        else:
-          print(f"usage: {sys.argv[0]} predict <image_path>")
+                )
+            case "prepare":
+                prepare(sys.argv[2] if len(sys.argv) > 2 else None)
+            case "train":
+                train()
+            case "predict":
+                if len(sys.argv) > 2:
+                    predict(sys.argv[2])
+                else:
+                    print(f"usage: {sys.argv[0]} predict <image_path>")
