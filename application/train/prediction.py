@@ -5,8 +5,6 @@ import numpy
 import imutils
 import cv2
 import keras.preprocessing
-import matplotlib.pyplot
-import matplotlib.image
 
 from keras.preprocessing.image import image_utils as keras_image_utils
 from keras.applications import imagenet_utils as kreas_imagenet_utils
@@ -56,66 +54,50 @@ class Prediction:
                 # yield the current window
                 yield (x, y, image[y:y + ws[1], x:x + ws[0]])
 
-    # def _predict(self, model, image_path):
-    #     print(f"Test image: {image_path}")
-    #     image = keras_image_utils.load_img(image_path, target_size=(224, 224))
-    #     image = image.resize((600, image.size[1]))
+    def _predict_v2(self, model, image_path):
+        print(f"Test image: {image_path}")
+        image = keras_image_utils.load_img(image_path, target_size=(224, 224))
+        image = image.resize((600, image.size[1]))
 
-    #     image = keras_image_utils.img_to_array(image)
+        image = keras_image_utils.img_to_array(image)
 
-        # (H, W) = image.shape[:2]
+        (H, W) = image.shape[:2]
 
-        # rois = []
-        # locs = []
-        # labels = []
+        rois = []
+        locs = []
+        labels = []
 
-        # for image in self.crop_image(image):
-        #     scale = W / float(image.shape[1])
-        #     for (x, y, roiOrig) in self.sliding_window(image, 16, (300, 150)):
-        #         # scale the (x, y)-coordinates of the ROI with respect to the
-        #         # *original* image dimensions
-        #         x = int(x * scale)
-        #         y = int(y * scale)
-        #         w = int((300, 150)[0] * scale)
-        #         h = int((300, 150)[1] * scale)
-        #         # take the ROI and preprocess it so we can later classify
-        #         # the region using Keras/TensorFlow
-        #         roi = cv2.resize(roiOrig, (224, 224))
-        #         # roi = roiOrig.resize((224, 224))
-        #         roi = keras_image_utils.img_to_array(roi)
-        #         roi = kreas_imagenet_utils.preprocess_input(roi)
-        #         # update our list of ROIs and associated coordinates
-        #         rois.append(roi)
-        #         locs.append((x, y, x + w, y + h))
+        for image in self.crop_image(image):
+            scale = W / float(image.shape[1])
+            for (x, y, roiOrig) in self.sliding_window(image, 16, (300, 150)):
+                # scale the (x, y)-coordinates of the ROI with respect to the
+                # *original* image dimensions
+                x = int(x * scale)
+                y = int(y * scale)
+                w = int((300, 150)[0] * scale)
+                h = int((300, 150)[1] * scale)
+                # take the ROI and preprocess it so we can later classify
+                # the region using Keras/TensorFlow
+                roi = cv2.resize(roiOrig, (224, 224))
+                # roi = roiOrig.resize((224, 224))
+                roi = keras_image_utils.img_to_array(roi)
+                roi = kreas_imagenet_utils.preprocess_input(roi)
+                # update our list of ROIs and associated coordinates
+                rois.append(roi)
+                locs.append((x, y, x + w, y + h))
 
-        # # image = numpy.expand_dims(image, axis=0)
-        # rois = numpy.array(rois, dtype="float32")
-        # preds = model.predict(rois)
-        
-        # for (i, p) in enumerate(preds):
-		# 	# grab the prediction information for the current ROI
-        #     (imagenetID, label, prob) = p[0]
-        #     print(p[0])
-		# 	# filter out weak detections by ensuring the predicted probability
-		# 	# is greater than the minimum probability
-        #     if prob >= 0.9:
-		# 		# grab the bounding box associated with the prediction and
-		# 		# convert the coordinates
-        #         box = locs[i]
-		# 		# grab the list of predictions for the label and add the
-		# 		# bounding box and probability to the list
-        #         L = labels.get(label, [])
-        #         L.append((box, prob))
-        #         labels[label] = L
-        
-        # return preds
+        # image = numpy.expand_dims(image, axis=0)
+        rois = numpy.array(rois, dtype="float32")
+
+        preds = model.predict(rois)
+        return preds
 	
     def _predict(self, model, image_path):
         print(f"Test image: {image_path}")
         image = keras_image_utils.load_img(image_path, target_size=(224, 224))
-        input_image = keras_image_utils.img_to_array(image)
-        input_image = numpy.expand_dims(input_image, axis=0)
-        return str(numpy.argmax(model.predict(input_image)))
+        image = keras_image_utils.img_to_array(image)
+        image = numpy.expand_dims(image, axis=0)
+        return str(numpy.argmax(model.predict(image)))
 
     def predict(self, path, classes, model_file):
         results = []
@@ -135,21 +117,3 @@ class Prediction:
     def save_results(self, path: str, results: list):
         with open(path, "w") as _file:
             _file.write(json.dumps(results))
-
-    def show_images(self, results):
-        results = results[:12]
-
-        images_count = len(results)
-        count = 1
-
-        figure = matplotlib.pyplot.figure(figsize=(15, images_count*3))
-
-        for result in results:
-            for image_path, image_class in result.items():
-                axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
-                axes.axis('off')
-                axes.imshow(matplotlib.image.imread(image_path), aspect="auto")
-                axes.set_title(image_class, fontsize=10)
-                count += 1
-
-        matplotlib.pyplot.show()

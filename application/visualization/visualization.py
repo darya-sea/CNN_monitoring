@@ -1,6 +1,8 @@
     
 import pandas
 import os
+
+from matplotlib import image
 from matplotlib import pyplot
 
 class Visualization:
@@ -30,3 +32,21 @@ class Visualization:
         hist_csv_file =  f"{path}/model_history.csv"
         with open(hist_csv_file, mode="w") as _file:
             dataframe.to_csv(_file)
+            
+    def show_predicted_images(self, results):
+        results = results[:12]
+
+        images_count = len(results)
+        count = 1
+
+        figure = pyplot.figure(figsize=(15, images_count*3))
+
+        for result in results:
+            for image_path, image_class in result.items():
+                axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
+                axes.axis('off')
+                axes.imshow(image.imread(image_path), aspect="auto")
+                axes.set_title(image_class, fontsize=10)
+                count += 1
+
+        pyplot.show()
