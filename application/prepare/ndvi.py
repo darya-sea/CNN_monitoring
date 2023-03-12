@@ -17,7 +17,7 @@ class NDVI:
         if entry.is_dir():
           images.extend(self.get_all_images(entry.path))
         else:
-          if ".DS_Store" not in entry.path and "C.tif" not in entry.path:
+          if entry.path.endswith(("N.tif", "N.tiff")) :
             images.append(entry.path)
 
     return images

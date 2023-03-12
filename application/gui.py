@@ -2,6 +2,7 @@ import config
 import logging
 import warnings
 import builtins
+import imutils
 import keras.utils.io_utils
 import matplotlib
 import matplotlib.pyplot
@@ -114,9 +115,12 @@ def draw_prediction(results):
 
   for result in results:
     for image_path, image_class in result.items():
+      image = matplotlib.image.imread(image_path)
+      image = imutils.opencv2matplotlib(image)
+
       axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
       axes.axis('off')
-      axes.imshow(matplotlib.image.imread(image_path), aspect="auto")
+      axes.imshow(image, aspect="auto")
       axes.set_title(image_class, fontsize=9)
       count += 1 
 
