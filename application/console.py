@@ -46,10 +46,10 @@ def train():
         training.save_classes(validation_generator,
                               f"{config.DATA_FOLDER}/validation_classes.json")
         visualization = Visualization()
-        # training.validation(train_generator, validation_generator, config.TRAINING_EPOCHS)
         history = training.train(
             train_generator, validation_generator, config.TRAINING_EPOCHS)
-        # visualization.process_history(history, f"{config.DATA_FOLDER}/output/history")
+        visualization.plot_accuracy(history, f"{config.DATA_FOLDER}/output/history")
+        visualization.save_history(history, f"{config.DATA_FOLDER}/output/history")
 
 def help(script_name):
     print(
