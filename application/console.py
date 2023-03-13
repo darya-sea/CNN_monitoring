@@ -2,6 +2,7 @@ import sys
 import config
 import logging
 import warnings
+import os
 
 from pprint import pprint
 
@@ -29,12 +30,13 @@ def predict(image_path):
     predict = Prediction()
     visualization = Visualization()
 
-    model_file = predict.get_best_model(f"{config.DATA_FOLDER}/output/models")
+    models_path = os.path.join(config.DATA_FOLDER, "output/models")
+    classes_path = os.path.join(config.DATA_FOLDER, "validation_classes.json")
+
+    model_file = predict.get_best_model(models_path)
 
     if model_file:
-        classes = predict.load_classes(
-            f"{config.DATA_FOLDER}/validation_classes.json")
-
+        classes = predict.load_classes(classes_path)
         resutls = predict.predict(image_path, classes, model_file)
         visualization.show_predicted_images(resutls)
         pprint(resutls)
@@ -44,15 +46,17 @@ def train():
     from visualization.visualization import Visualization
 
     training = Train(config.DATA_FOLDER)
+    visualization = Visualization()
+    
+    classes_path = os.path.join(config.DATA_FOLDER, "validation_classes.json")
+    history_path = os.path.join(config.DATA_FOLDER, "output")
+
     train_generator, validation_generator = training.get_train_generator()
     if train_generator and validation_generator:
-        training.save_classes(validation_generator,
-                              f"{config.DATA_FOLDER}/validation_classes.json")
-        visualization = Visualization()
-        history = training.train(
-            train_generator, validation_generator, config.TRAINING_EPOCHS)
-        visualization.plot_accuracy(history, f"{config.DATA_FOLDER}/output/history")
-        visualization.save_history(history, f"{config.DATA_FOLDER}/output/history")
+        training.save_classes(validation_generator, classes_path)
+        history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
+        visualization.plot_accuracy(history, history_path)
+        visualization.save_history(history, history_path)
 
 def help(script_name):
     print(
