@@ -7,8 +7,9 @@ from matplotlib import pyplot
 
 class Visualization:
     def plot_accuracy(self, history, path, show_plot=False):
-        dataframe = pandas.DataFrame(history.history)
+        os.makedirs(path, exist_ok=True)
 
+        dataframe = pandas.DataFrame(history.history)
         dataframe.plot(figsize=(5, 5))
 
         pyplot.title("Training and Validation Accuracy")
@@ -21,9 +22,9 @@ class Visualization:
         pyplot.close()
 
     def save_history(self, history, path):
-        dataframe = pandas.DataFrame(history.history)
-
         os.makedirs(path, exist_ok=True)
+
+        dataframe = pandas.DataFrame(history.history)
 
         hist_json_file = f"{path}/model_history.json"
         with open(hist_json_file, mode="w") as _file:
