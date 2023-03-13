@@ -41,14 +41,15 @@ class Visualization:
         count = 1
 
         figure = matplotlib.pyplot.figure(figsize=(15, images_count*3))
-        figure.subplots_adjust(top=0.9, bottom=0.10, left=0.01, right=0.99, hspace=0.21, wspace=0.5)
 
         for result in results:
             for image_path, image_class in result.items():
+                image = matplotlib.image.imread(image_path)
+                image = imutils.opencv2matplotlib(image)
+
                 axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
                 axes.axis('off')
-                axes.imshow(matplotlib.image.imread(image_path), aspect="auto")
-                image = imutils.opencv2matplotlib(image)
+                axes.imshow(image, aspect="auto")
                 axes.set_title(image_class, fontsize=10)
                 count += 1
 
