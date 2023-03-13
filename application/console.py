@@ -11,14 +11,14 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
 
-def prepare(ndvi=None):
+def prepare(option=None):
     from prepare.data import PrepareData
     from prepare.ndvi import NDVI
 
-    if ndvi == "ndvi" or ndvi == None:
+    if option == "ndvi" or option == None:
         NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
 
-    if ndvi == "data" or ndvi == None:
+    if option == "data" or option == None:
         PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
 
 
