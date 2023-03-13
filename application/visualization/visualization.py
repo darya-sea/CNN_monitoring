@@ -1,9 +1,9 @@
     
 import pandas
 import os
-
-from matplotlib import image
-from matplotlib import pyplot
+import imutils
+import matplotlib
+import matplotlib.pyplot
 
 class Visualization:
     def plot_accuracy(self, history, path, show_plot=False):
@@ -12,14 +12,14 @@ class Visualization:
         dataframe = pandas.DataFrame(history.history)
         dataframe.plot(figsize=(5, 5))
 
-        pyplot.title("Training and Validation Accuracy")
-        pyplot.xlabel("Epoch")
-        pyplot.ylabel("Metric")
-        pyplot.savefig(f"{path}/model_history.png")
+        matplotlib.pyplot.title("Training and Validation Accuracy")
+        matplotlib.pyplot.xlabel("Epoch")
+        matplotlib.pyplot.ylabel("Metric")
+        matplotlib.pyplot.savefig(f"{path}/model_history.png")
         
         if show_plot:
-            pyplot.show(path)
-        pyplot.close()
+            matplotlib.pyplot.show(path)
+        matplotlib.pyplot.close()
 
     def save_history(self, history, path):
         os.makedirs(path, exist_ok=True)
@@ -40,14 +40,16 @@ class Visualization:
         images_count = len(results)
         count = 1
 
-        figure = pyplot.figure(figsize=(15, images_count*3))
+        figure = matplotlib.pyplot.figure(figsize=(15, images_count*3))
+        figure.subplots_adjust(top=0.9, bottom=0.10, left=0.01, right=0.99, hspace=0.21, wspace=0.5)
 
         for result in results:
             for image_path, image_class in result.items():
                 axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
                 axes.axis('off')
-                axes.imshow(image.imread(image_path), aspect="auto")
+                axes.imshow(matplotlib.image.imread(image_path), aspect="auto")
+                image = imutils.opencv2matplotlib(image)
                 axes.set_title(image_class, fontsize=10)
                 count += 1
 
-        pyplot.show()
+        matplotlib.pyplot.show()
