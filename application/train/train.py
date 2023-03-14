@@ -73,7 +73,7 @@ class Train:
         benchmark_model.add(MaxPooling2D(pool_size=(4, 4), strides=(2, 2)))
         benchmark_model.add(Flatten())
         benchmark_model.add(Dense(128, activation="relu"))
-        benchmark_model.add(Dense(5, activation="softmax"))
+        benchmark_model.add(Dense(train_generator.num_classes, activation="softmax"))
         benchmark_model.compile(
             optimizer="adam", loss="categorical_crossentropy", metrics=["acc"])
         benchmark_model.summary()
@@ -124,7 +124,7 @@ class Train:
 
         vgg_x = Flatten()(last_output)
         vgg_x = Dense(128, activation="relu")(vgg_x)
-        vgg_x = Dense(5, activation="softmax")(vgg_x)
+        vgg_x = Dense(train_generator.num_classes, activation="softmax")(vgg_x)
 
         vgg_final_model = Model(vgg_model.input, vgg_x)
         vgg_final_model.compile(
