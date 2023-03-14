@@ -75,7 +75,7 @@ def get_layout():
         ],
         [
             gui.Text("Classes file: ", size=(13, 1)),
-            gui.In(default_text=f"{config.DATA_FOLDER}/validation_classes.json",
+            gui.In(default_text=os.path.join(config.DATA_FOLDER, "validation_classes.json"),
                    size=(46, 1), enable_events=True, key="-PRED_CLASSES_FILE-"),
             gui.FilesBrowse(initial_folder=config.DATA_FOLDER, size=(10, 1))
         ],
@@ -183,9 +183,11 @@ def run_prediction(image_folder, classes_file, model_file):
     window["-PRED_RESULTS-"].update("")
     predict = Prediction()
 
+    models_path = os.path.join(config.DATA_FOLDER, "output/models")
+    results_path = os.path.join(os.path.dirname(image_folder), "results.json")
+
     if not values.get("-PRED_MODEL_FILE-"):
-        model_file = predict.get_best_model(
-            f"{config.DATA_FOLDER}/output/models")
+        model_file = predict.get_best_model(models_path)
 
         window["-PRED_MODEL_FILE-"].update(model_file)
         values["-PRED_MODEL_FILE-"] = model_file
@@ -196,8 +198,8 @@ def run_prediction(image_folder, classes_file, model_file):
 
         classes = predict.load_classes(classes_file)
         resutls = predict.predict(image_folder, classes, model_file)
-        predict.save_results(
-            f"{os.path.dirname(image_folder)}/results.json", resutls)
+        predict.save_results(results_path, resutls)
+
         window["-PRED_RESULTS-"].update(
             f'Done!\n{window["-PRED_RESULTS-"].get()}')
         return resutls
@@ -210,14 +212,17 @@ def run_training(data_folder, traning_epochs):
     training = Train(data_folder)
     visualization = Visualization()
 
+    classes_path = os.path.join(data_folder, "validation_classes.json")
+    history_path = os.path.join(data_folder, "output")
+
     train_generator, validation_generator = training.get_train_generator()
     
-    training.save_classes(validation_generator, f"{data_folder}/validation_classes.json")
+    training.save_classes(validation_generator, classes_path)
 
     if train_generator and validation_generator:
         history = training.train(train_generator, validation_generator, traning_epochs)
-        visualization.save_history(history, f"{data_folder}/output")
-        visualization.plot_accuracy(history, f"{data_folder}/output")
+        visualization.save_history(history, history_path)
+        visualization.plot_accuracy(history, history_path)
 
 thread = None
 window = gui.Window("CNN Monitoring", get_layout(), font=("Arial", 12))
