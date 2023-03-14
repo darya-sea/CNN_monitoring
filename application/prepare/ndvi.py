@@ -31,12 +31,12 @@ class NDVI:
             self.__processed_images = 0
 
         for plant_name in os.listdir(input_folder):
-            plant_dir = f"{input_folder}/{plant_name}"
+            plant_dir = os.path.join(input_folder, plant_name)
 
             if not os.path.isdir(plant_dir):
                 continue
 
-            ndvi_folder = f"{plant_dir}/NDVI"
+            ndvi_folder = os.path.join(plant_dir, "NDVI")
 
             shutil.rmtree(ndvi_folder, ignore_errors=True)
             os.makedirs(ndvi_folder, exist_ok=True)
@@ -48,10 +48,12 @@ class NDVI:
             self.__processed_images = 0
 
             for image_path in images:
+                ndvi_image_path = os.path.join(ndvi_folder, os.path.basename(image_path))
+
                 if parallel:
-                    self.parallel_filter(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}", images_count)
+                    self.parallel_filter(image_path, ndvi_image_path, images_count)
                 else:
-                    NDVI.filter_rasterio(image_path, f"{ndvi_folder}/{os.path.basename(image_path)}")
+                    NDVI.filter_rasterio(image_path, ndvi_image_path)
 
     def parallel_filter(self, input_image, output_image, total_images):
         if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:

@@ -29,17 +29,17 @@ class PrepareData:
 
         shutil.rmtree(self.__output_folder, ignore_errors=True)
 
-        for _class in os.listdir(self.__input_folder):
-            if not os.path.isdir(f"{self.__input_folder}/{_class}"):
+        for plant_name in os.listdir(self.__input_folder):
+            if not os.path.isdir(os.path.join(self.__input_folder, plant_name)):
                 continue
 
-            train_folder = f"{self.__output_folder}/train/{_class}"
-            validation_folder = f"{self.__output_folder}/validation/{_class}"
+            train_folder = os.path.join(self.__output_folder, "train", plant_name)
+            validation_folder = os.path.join(self.__output_folder, "validation", plant_name)
 
             os.makedirs(train_folder, exist_ok=True)
             os.makedirs(validation_folder, exist_ok=True)
 
-            images = self.get_all_images(f"{self.__input_folder}/{_class}")
+            images = self.get_all_images(os.path.join(self.__input_folder, plant_name))
             images_count = len(images)
 
             numpy.random.shuffle(images)
@@ -52,9 +52,8 @@ class PrepareData:
             train_images_count = len(train_images)
             validation_images_count = len(validation_images)
 
-            # View count of images after partition
             print(f"""
-				Data for '{_class}'
+				Data for '{plant_name}'
 				Images: {images_count}
 				Training: {train_images_count}
 				Validation: {validation_images_count}
@@ -62,17 +61,17 @@ class PrepareData:
 
             # Copy-paste images
             for image_path in train_images:
-                output_image = f"{train_folder}/{os.path.basename(image_path)}"
+                output_image = os.path.join(train_folder, os.path.basename(image_path))
 
                 if os.path.exists(output_image):
-                    output_image = f"{train_folder}/{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
+                    output_image = os.path.join(train_folder, f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}")
 
                 shutil.copy(image_path, output_image)
 
             for image_path in validation_images:
-                output_image = f"{validation_folder}/{os.path.basename(image_path)}"
+                output_image = os.path.join(validation_folder, os.path.basename(image_path))
 
                 if os.path.exists(output_image):
-                    output_image = f"{validation_folder}/{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
+                    output_image = os.path.join(validation_folder, f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}")
 
                 shutil.copy(image_path, output_image)
