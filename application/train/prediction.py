@@ -53,7 +53,7 @@ class Prediction:
         else:
             if path.endswith(self.__supported_formats):
                 print(f"Runing prediction on file {path}")
-                results.append({path: classes[self._predict_v2(model, path)]})
+                results.append({path: classes[self._predict(model, path)]})
             else:
                 print(f"Not supported file format. Use one of {self.__supported_formats}")
         return results
