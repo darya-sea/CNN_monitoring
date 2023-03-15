@@ -3,10 +3,7 @@ import json
 import tensorflow
 
 from keras import Model
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
-from keras.callbacks import ReduceLROnPlateau
-
+from keras.layers import Dense, Flatten
 
 class Train:
     def __init__(self, data_folder):
@@ -62,53 +59,10 @@ class Train:
             _file.write(json.dumps(
                 {v: k for k, v in validation_generator.class_indices.items()}))
 
-    def validation(self, train_generator, validation_generator, benchmark_epoch):
-        output_folder = f"{self.__data_folder}/output/models"
-
-        benchmark_model = Sequential()
-        benchmark_model.add(Conv2D(
-            128, kernel_size=7, activation="relu", input_shape=self.__taget_size + (3,)))
-        benchmark_model.add(MaxPooling2D(pool_size=(4, 4), strides=(2, 2)))
-        benchmark_model.add(Conv2D(64, kernel_size=5, activation="relu"))
-        benchmark_model.add(MaxPooling2D(pool_size=(4, 4), strides=(2, 2)))
-        benchmark_model.add(Flatten())
-        benchmark_model.add(Dense(128, activation="relu"))
-        benchmark_model.add(Dense(train_generator.num_classes, activation="softmax"))
-        benchmark_model.compile(
-            optimizer="adam", loss="categorical_crossentropy", metrics=["acc"])
-        benchmark_model.summary()
-
-        os.makedirs(output_folder, exist_ok=True)
-        filepath = output_folder + \
-            "/benchmark-model-{epoch:02d}-{val_acc:.2f}.hdf5"
-
-        reduce_lr = ReduceLROnPlateau(
-            monitor="val_loss", factor=0.05, patience=5, min_lr=0.000002)
-
-        checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(
-            filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
-        early_stopping = tensorflow.keras.callbacks.EarlyStopping(
-            monitor="loss", patience=10)
-
-        history = benchmark_model.fit(
-            train_generator,
-            epochs=benchmark_epoch,
-            verbose=1,
-            validation_data=validation_generator,
-            callbacks=[
-                reduce_lr,
-                early_stopping,
-                checkpoint
-            ]
-        )
-
-        benchmark_model.save(filepath)
-
-        return history
 
     def train(self, train_generator, validation_generator, epochs):
-        output_folder = f"{self.__data_folder}/output/models"
-        backup_folder = f"{self.__data_folder}/backup"
+        output_folder = os.path.join(self.__data_folder, "output/models")
+        backup_folder = os.path.join(self.__data_folder, "backup")
 
         vgg_model = tensorflow.keras.applications.vgg16.VGG16(
             pooling="avg",

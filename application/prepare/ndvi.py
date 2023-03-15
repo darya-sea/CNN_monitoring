@@ -83,8 +83,7 @@ class NDVI:
         # opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
         # closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
         # ndvi = cv2.bitwise_not(closing)
-
-        pyplot.imsave(output_image, ndvi, cmap=pyplot.cm.summer)
+        cv2.imwrite(output_image, cv2.applyColorMap(ndvi, cv2.COLORMAP_SUMMER))
 
     def filter_rasterio_v2(input_image, output_image):
         print(f"Applying NDVI filter on {input_image}...")
