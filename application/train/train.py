@@ -1,11 +1,12 @@
 import os
 import json
 import tensorflow
+import numpy
 
-from keras import Model
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
-from keras.callbacks import ReduceLROnPlateau
+from keras import Model, utils
+from keras.layers import Dense, Flatten, Dropout
+from keras.preprocessing.image import image_utils as keras_image_utils
+from sklearn.preprocessing import LabelBinarizer
 
 
 class Train:
@@ -56,59 +57,103 @@ class Train:
                 target_size=self.__taget_size
             )
         return train_generator, validation_generator
+    
+    def get_train_data(self):
+        label_binarizer = LabelBinarizer()
+
+        train_images = []
+        train_labels = []
+        train_bboxes = []
+        train_paths = []
+
+        validation_images = []
+        validation_labels = []
+        validation_bboxes = []
+        validation_paths = []
+
+        train_annotations = os.path.join(self.__data_folder, "train_annotations.csv")
+        validation_annotations = os.path.join(self.__data_folder, "validation_annotations.csv")
+
+        if os.path.exists(train_annotations):
+            with open(train_annotations, "r") as _file:
+                for line in _file.readlines():
+                    annotations = line.split(",")
+                    image = keras_image_utils.load_img(annotations[0], target_size=self.__taget_size)
+                    h, w = image.size[0],image.size[1]
+
+                    train_images.append(keras_image_utils.img_to_array(image))
+                    train_paths.append(annotations[0])
+                    train_bboxes.append( 
+                        (
+                            float(annotations[1])/w,
+                            float(annotations[2])/h,
+                            float(annotations[3])/w,
+                            float(annotations[4])/h
+                        )
+                    )
+                    train_labels.append(annotations[5])
+            
+            train_images = numpy.array(train_images, dtype="float32") / 255.0
+            train_labels = numpy.array(train_labels)
+            train_bboxes = numpy.array(train_bboxes, dtype="float32")
+            train_paths = numpy.array(train_paths)
+
+            train_labels = label_binarizer.fit_transform(train_labels)
+
+            if len(label_binarizer.classes_) == 2:
+                train_labels = utils.to_categorical(train_labels)
+
+        if os.path.exists(validation_annotations):
+            with open(validation_annotations, "r") as _file:
+                for line in _file.readlines():
+                    annotations = line.split(",")
+                    image = keras_image_utils.load_img(annotations[0], target_size=self.__taget_size)
+                    h, w = image.size[0],image.size[1]
+
+                    validation_images.append(keras_image_utils.img_to_array(image))
+                    validation_paths.append(annotations[0])
+                    validation_bboxes.append(
+                        (
+                            float(annotations[1])/w,
+                            float(annotations[2])/h,
+                            float(annotations[3])/w,
+                            float(annotations[4])/h
+                        )
+                    )
+                    validation_labels.append(annotations[5])
+
+            validation_images = numpy.array(validation_images, dtype="float32") / 255.0
+            validation_labels = numpy.array(validation_labels)
+            validation_bboxes = numpy.array(validation_bboxes, dtype="float32")
+            validation_paths = numpy.array(validation_paths)
+
+            validation_labels = label_binarizer.fit_transform(validation_labels)
+
+            if len(label_binarizer.classes_) == 2:
+               validation_labels = utils.to_categorical(validation_labels)
+
+        train_targets = {
+            "class_label": train_labels,
+            "bounding_box": train_bboxes
+        }
+
+        validation_targets = {
+            "class_label": validation_labels,
+            "bounding_box": validation_bboxes
+        }
+
+        return train_images, train_targets, validation_images, validation_targets
 
     def save_classes(self, validation_generator, classes_file):
         with open(classes_file, "w") as _file:
             _file.write(json.dumps(
                 {v: k for k, v in validation_generator.class_indices.items()}))
 
-    def validation(self, train_generator, validation_generator, benchmark_epoch):
-        output_folder = f"{self.__data_folder}/output/models"
+    def train(self, train_images, train_targets, validation_images, validation_targets, epochs):
+        label_binarizer = LabelBinarizer()
 
-        benchmark_model = Sequential()
-        benchmark_model.add(Conv2D(
-            128, kernel_size=7, activation="relu", input_shape=self.__taget_size + (3,)))
-        benchmark_model.add(MaxPooling2D(pool_size=(4, 4), strides=(2, 2)))
-        benchmark_model.add(Conv2D(64, kernel_size=5, activation="relu"))
-        benchmark_model.add(MaxPooling2D(pool_size=(4, 4), strides=(2, 2)))
-        benchmark_model.add(Flatten())
-        benchmark_model.add(Dense(128, activation="relu"))
-        benchmark_model.add(Dense(train_generator.num_classes, activation="softmax"))
-        benchmark_model.compile(
-            optimizer="adam", loss="categorical_crossentropy", metrics=["acc"])
-        benchmark_model.summary()
-
-        os.makedirs(output_folder, exist_ok=True)
-        filepath = output_folder + \
-            "/benchmark-model-{epoch:02d}-{val_acc:.2f}.hdf5"
-
-        reduce_lr = ReduceLROnPlateau(
-            monitor="val_loss", factor=0.05, patience=5, min_lr=0.000002)
-
-        checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(
-            filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
-        early_stopping = tensorflow.keras.callbacks.EarlyStopping(
-            monitor="loss", patience=10)
-
-        history = benchmark_model.fit(
-            train_generator,
-            epochs=benchmark_epoch,
-            verbose=1,
-            validation_data=validation_generator,
-            callbacks=[
-                reduce_lr,
-                early_stopping,
-                checkpoint
-            ]
-        )
-
-        benchmark_model.save(filepath)
-
-        return history
-
-    def train(self, train_generator, validation_generator, epochs):
-        output_folder = f"{self.__data_folder}/output/models"
-        backup_folder = f"{self.__data_folder}/backup"
+        output_folder = os.path.join(self.__data_folder, "output/models")
+        backup_folder = os.path.join(self.__data_folder, "backup")
 
         vgg_model = tensorflow.keras.applications.vgg16.VGG16(
             pooling="avg",
@@ -122,13 +167,23 @@ class Train:
 
         last_output = vgg_model.layers[-1].output
 
-        vgg_x = Flatten()(last_output)
-        vgg_x = Dense(128, activation="relu")(vgg_x)
-        vgg_x = Dense(train_generator.num_classes, activation="softmax")(vgg_x)
+        flatten = Flatten()(last_output)
+        # vgg_x = Dense(128, activation="relu")(vgg_x)
+        # vgg_x = Dense(train_generator.num_classes, activation="softmax")(vgg_x)
 
-        vgg_final_model = Model(vgg_model.input, vgg_x)
-        vgg_final_model.compile(
-            loss="categorical_crossentropy", optimizer="adam", metrics=["acc"])
+        bboxHead = Dense(128, activation="relu")(flatten)
+        bboxHead = Dense(64, activation="relu")(bboxHead)
+        bboxHead = Dense(32, activation="relu")(bboxHead)
+        bboxHead = Dense(4, activation="sigmoid", name="bounding_box")(bboxHead)
+
+        softmaxHead = Dense(512, activation="relu")(flatten)
+        softmaxHead = Dropout(0.5)(softmaxHead)
+        softmaxHead = Dense(512, activation="relu")(softmaxHead)
+        softmaxHead = Dropout(0.5)(softmaxHead)
+        softmaxHead = Dense(len(label_binarizer.classes_), activation="softmax", name="class_label")(softmaxHead)
+
+        vgg_final_model = Model(vgg_model.input, outputs=(bboxHead, softmaxHead))
+        vgg_final_model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["acc"])
 
         os.makedirs(output_folder, exist_ok=True)
         os.makedirs(backup_folder, exist_ok=True)
@@ -144,9 +199,9 @@ class Train:
             monitor="loss", patience=10)
 
         history = vgg_final_model.fit(
-            train_generator,
+            train_images, train_targets,
+	        validation_data=(validation_images, validation_targets),
             epochs = epochs,
-            validation_data = validation_generator,
             callbacks=[
                 checkpoint,
                 early_stopping,

@@ -52,12 +52,14 @@ def train():
     classes_path = os.path.join(config.DATA_FOLDER, "validation_classes.json")
     history_path = os.path.join(config.DATA_FOLDER, "output")
 
-    train_generator, validation_generator = training.get_train_generator()
-    if train_generator and validation_generator:
-        training.save_classes(validation_generator, classes_path)
-        history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
-        visualization.plot_accuracy(history, history_path)
-        visualization.save_history(history, history_path)
+    # train_generator, validation_generator = training.get_train_generator()
+    # if train_generator and validation_generator:
+        # training.save_classes(validation_generator, classes_path)
+
+
+    history = training.train(*training.get_train_data(), config.TRAINING_EPOCHS)
+    visualization.plot_accuracy(history, history_path)
+    visualization.save_history(history, history_path)
 
 def help(script_name):
     print(

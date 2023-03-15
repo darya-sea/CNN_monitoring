@@ -2,6 +2,7 @@ import shutil
 import os
 import numpy
 import random
+import cv2
 
 
 class PrepareData:
@@ -16,10 +17,28 @@ class PrepareData:
             if entry.is_dir():
                 images.extend(self.get_all_images(entry.path))
             else:
-                if entry.path.endswith((".tiff", ".tif", ".png", ".jpg", ".jpeg")):
+                if entry.path.endswith(("N.tiff", "N.tif")):
                     images.append(entry.path)
 
         return images
+
+    def save_annotations(self, csv_file, image_path, output_image):
+        plant_name = os.path.basename(os.path.dirname(output_image))
+        
+        image_name = os.path.basename(output_image).replace("C.", "N.").split("_")[-1]
+
+        ndvi_folder = os.path.join(os.path.dirname(os.path.dirname(image_path)), "NDVI")
+        ndvi_image = os.path.join(ndvi_folder, image_name)
+
+        if os.path.exists(ndvi_image):
+            image = cv2.imread(ndvi_image, cv2.IMREAD_GRAYSCALE)
+            mask = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+            with open(csv_file, "a") as _file:
+                for contour in cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
+                    (x, y, w, h) = cv2.boundingRect(contour)
+                    if w > 40:
+                        _file.write(f"{output_image},{x},{y},{w},{h},{plant_name}\n")
 
     def prepare_images(self):
         if self.__input_folder == self.__output_folder:
@@ -28,6 +47,9 @@ class PrepareData:
             return False
 
         shutil.rmtree(self.__output_folder, ignore_errors=True)
+
+        train_annotations = os.path.join(self.__output_folder, "train_annotations.csv")
+        validation_annotations = os.path.join(self.__output_folder, "validation_annotations.csv")
 
         for plant_name in os.listdir(self.__input_folder):
             if not os.path.isdir(os.path.join(self.__input_folder, plant_name)):
@@ -67,6 +89,7 @@ class PrepareData:
                     output_image = os.path.join(train_folder, f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}")
 
                 shutil.copy(image_path, output_image)
+                self.save_annotations(train_annotations, image_path, output_image)
 
             for image_path in validation_images:
                 output_image = os.path.join(validation_folder, os.path.basename(image_path))
@@ -75,3 +98,4 @@ class PrepareData:
                     output_image = os.path.join(validation_folder, f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}")
 
                 shutil.copy(image_path, output_image)
+                self.save_annotations(validation_annotations, image_path, output_image)

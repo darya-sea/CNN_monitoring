@@ -68,23 +68,11 @@ class NDVI:
         with rasterio.open(input_image) as _file:
             ndvi = _file.read(1)
         
-        output_image = f"{output_image.split('.tif')[0]}.tiff"
-
-        if os.path.exists(output_image):
-            output_image_name = os.path.basename(output_image)
-            output_image = output_image.replace(output_image_name, f"{str(random.randrange(1, 100))}_{output_image_name}")
-
-        _, mask = cv2.threshold(ndvi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        mask = cv2.threshold(ndvi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         masked_img = cv2.bitwise_and(ndvi, ndvi, mask=mask)
         ndvi = cv2.addWeighted(masked_img, 1.5, numpy.zeros_like(masked_img), 0, 0)
 
-        # _, thresh = cv2.threshold(ndvi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        # kernel = numpy.ones((5, 5), numpy.uint8)
-        # opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-        # closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
-        # ndvi = cv2.bitwise_not(closing)
-
-        pyplot.imsave(output_image, ndvi, cmap=pyplot.cm.summer)
+        cv2.imwrite(output_image, cv2.applyColorMap(ndvi, cv2.COLORMAP_SUMMER))
 
     def filter_rasterio_v2(input_image, output_image):
         print(f"Applying NDVI filter on {input_image}...")
