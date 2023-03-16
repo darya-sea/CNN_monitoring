@@ -214,7 +214,7 @@ class EC2:
         client = self.__session.client("sts")
         return client.get_caller_identity()["Account"]
 
-    def get_active_spoot_fleet_request(self):
+    def get_active_spot_fleet_request(self):
         iam_fleet_role = f"arn:aws:iam::{self.get_account_id()}:role/{self.__spot_fleet_role}"
         client = self.__session.client("ec2")
         
@@ -233,27 +233,35 @@ class EC2:
     def cancel_spot_fleet_request(self):
         client = self.__session.client("ec2")
 
-        if (spot_request := self.get_active_spoot_fleet_request()):
+        if (spot_request := self.get_active_spot_fleet_request()):
+            fleet_instances = self.get_spot_fleet_instances(spot_request['SpotFleetRequestId'])
+
             print(f"[INFO] Canceling request {spot_request['SpotFleetRequestId']}.")
             client.cancel_spot_fleet_requests(
                 SpotFleetRequestIds=[spot_request['SpotFleetRequestId']],
                 TerminateInstances=True
             )
-            spot_fleet_request_id = spot_request['SpotFleetRequestId']
+
+            print(f"[INFO] Terminating instances {[instance['InstanceId'] for instance in fleet_instances]}.")
 
             while True:
-                if self.get_spot_fleet_instances(spot_fleet_request_id):
-                    time.sleep(3)
-                else:
-                    break
-            return spot_request
-
-        print(f"[INFO] Not found active spot fleet requests.")
+                for instance in fleet_instances:
+                    instance_statuses = client.describe_instance_status(InstanceIds=[instance["InstanceId"]])
+                    if instance_statuses["InstanceStatuses"]:
+                        for status in instance_statuses["InstanceStatuses"]:
+                            if status["InstanceState"]["Name"] == "terminated":
+                                return spot_request
+                    else:
+                        return spot_request
+                time.sleep(2)
+        else:
+            print(f"[INFO] Not found active spot fleet requests.")
+        return spot_request
 
     def request_spot_fleet(self):
         client = self.__session.client("ec2")
         
-        if (spot_request := self.get_active_spoot_fleet_request()):
+        if (spot_request := self.get_active_spot_fleet_request()):
             print(
                 f"[INFO] Found active spot fleet request {spot_request['SpotFleetRequestId']}.", 
                 f"ActivityStatus is {spot_request['ActivityStatus']}."

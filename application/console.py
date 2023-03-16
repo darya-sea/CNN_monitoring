@@ -90,7 +90,7 @@ def request_spot():
     ec2.request_spot_fleet()
 
     while True:
-        if (spot_request := ec2.get_active_spoot_fleet_request()):
+        if (spot_request := ec2.get_active_spot_fleet_request()):
             if spot_request["ActivityStatus"] == "fulfilled":
                 for instance in ec2.get_spot_fleet_instances(spot_request["SpotFleetRequestId"]):
                     time.sleep(3)
