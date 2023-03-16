@@ -53,16 +53,16 @@ class NDVI:
                 if parallel:
                     self.parallel_filter(image_path, ndvi_image_path, images_count)
                 else:
-                    NDVI.filter_rasterio(image_path, ndvi_image_path)
+                    NDVI.filter_v3(image_path, ndvi_image_path)
 
     def parallel_filter(self, input_image, output_image, total_images):
         if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:
-            self.__pool.starmap(NDVI.filter_rasterio, self.__pool_files)
+            self.__pool.starmap(NDVI.filter_v3, self.__pool_files)
             self.__pool_files = []
         self.__pool_files.append((input_image, output_image))
         self.__processed_images += 1 
 
-    def filter_rasterio(input_image, output_image):
+    def filter_v3(input_image, output_image):
         print(f"Applying NDVI filter on {input_image}...")
 
         with rasterio.open(input_image) as _file:
@@ -74,9 +74,9 @@ class NDVI:
             output_image_name = os.path.basename(output_image)
             output_image = output_image.replace(output_image_name, f"{str(random.randrange(1, 100))}_{output_image_name}")
 
-        _, mask = cv2.threshold(ndvi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        masked_img = cv2.bitwise_and(ndvi, ndvi, mask=mask)
-        ndvi = cv2.addWeighted(masked_img, 1.5, numpy.zeros_like(masked_img), 0, 0)
+        # _, mask = cv2.threshold(ndvi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        # masked_img = cv2.bitwise_and(ndvi, ndvi, mask=mask)
+        # ndvi = cv2.addWeighted(masked_img, 1.5, numpy.zeros_like(masked_img), 0, 0)
 
         # _, thresh = cv2.threshold(ndvi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         # kernel = numpy.ones((5, 5), numpy.uint8)
@@ -85,7 +85,7 @@ class NDVI:
         # ndvi = cv2.bitwise_not(closing)
         cv2.imwrite(output_image, cv2.applyColorMap(ndvi, cv2.COLORMAP_SUMMER))
 
-    def filter_rasterio_v2(input_image, output_image):
+    def filter_v2(input_image, output_image):
         print(f"Applying NDVI filter on {input_image}...")
 
         with rasterio.open(input_image) as infrared:
@@ -112,7 +112,7 @@ class NDVI:
 
         pyplot.imsave(output_image, ndvi, cmap="RdYlGn")
 
-    def filter(input_image, output_image):
+    def filter_v1(input_image, output_image):
         print(f"Applying NDVI filter on {input_image}...")
 
         def create_colormap(args):

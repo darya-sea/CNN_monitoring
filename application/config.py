@@ -9,4 +9,6 @@ TRAINING_EPOCHS = 60
 
 POOL_SIZE = 6
 
+# AWS params
+S3_BUCKET = "cnn-data"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'

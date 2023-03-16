@@ -3,8 +3,12 @@ import config
 import logging
 import warnings
 import os
+import time
 
 from pprint import pprint
+from aws.s3 import S3
+from aws.ec2 import EC2
+from aws.ssm import SSM
 
 warnings.filterwarnings('ignore')
 
@@ -59,10 +63,65 @@ def train():
         visualization.plot_accuracy(history, history_path)
         visualization.save_history(history, history_path)
 
+def sync_s3(local_folder=None):
+    s3 = S3()
+    s3.create_bucket(config.S3_BUCKET)
+
+    if local_folder:
+        if os.path.exists(local_folder):
+            s3.upload_files(config.S3_BUCKET, local_folder)
+        else:
+            print(f"[ERROR] Local folder {local_folder} not found.")
+    else:
+        s3.download_files(config.S3_BUCKET)
+
+def prepare_spot():
+    ec2 = EC2()
+    ec2.create_volume()
+    ec2.create_instance_profile()
+    ec2.create_launch_template()
+    ec2.create_spot_fleet_role()
+
+def request_spot():
+    ec2 = EC2()
+    ssm = SSM()
+
+    ec2.create_volume()
+    ec2.request_spot_fleet()
+
+    while True:
+        if (spot_request := ec2.get_active_spoot_fleet_request()):
+            if spot_request["ActivityStatus"] == "fulfilled":
+                for instance in ec2.get_spot_fleet_instances(spot_request["SpotFleetRequestId"]):
+                    time.sleep(3)
+                    device_name = ec2.attach_volume(instance["InstanceId"])[2]
+
+                    print(
+                        ssm.execute_command(
+                            instance["InstanceId"],
+                            [
+                                "cd /mnt",
+                                "df -h",
+                                f"ls -la {device_name}",
+                                "git clone https://github.com/darya-sea/CNN_monitoring.git",
+                                "sh CNN_monitoring/application/install.sh",
+                                "cd /mnt/CNN_monitoring",
+                                f"echo aws s3 sync s3://{config.S3_BUCKET} DATA"
+                            ]
+                        )
+                    )
+                break
+            else:
+                print("[INFO] Waiting request for fulfilled status.")
+        time.sleep(5)
+
+    ec2.cancel_spot_fleet_request()
+    ec2.delete_volume()
+
 def help(script_name):
     print(
     f"""
-        usage: {script_name} <prepare|train|predict>
+        usage: {script_name} <prepare|train|predict|sync>
 
         preapre example: 
           python {script_name} prepare ndvi
@@ -72,6 +131,13 @@ def help(script_name):
           python {script_name} train
         predict example: 
           python {script_name} predict "CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
+        sync example: 
+          python {script_name} sync
+          python {script_name} sync CNN
+        prepare_spot example: 
+          python {script_name} prepare_spot
+        request_spot example: 
+          python {script_name} request_spot
     """
     )
 
@@ -89,5 +155,15 @@ if __name__ == "__main__":
                     predict(sys.argv[2])
                 else:
                     print(f"usage: {sys.argv[0]} predict <image_path>")
+            case "sync":
+                if len(sys.argv) > 2:
+                    sync_s3(sys.argv[2])
+                else:
+                    sync_s3()
+            case "prepare_spot":
+                prepare_spot()
+            case "request_spot":
+                request_spot()
+                
     else:
         help(sys.argv[0])
