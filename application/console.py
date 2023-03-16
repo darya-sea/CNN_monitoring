@@ -97,7 +97,9 @@ def request_spot():
                     device_name = ec2.attach_volume(instance["InstanceId"])[2]
 
                     if (command_id := ssm.get_command_id()):
-                        pass
+                        for output in ssm.get_command_invocation(command_id, instance["InstanceId"]):
+                            print(output["StandardOutputContent"])
+                            print(output["StandardErrorContent"])
                     else:
                         output = ssm.execute_command(
                             instance["InstanceId"],
@@ -121,7 +123,7 @@ def request_spot():
                         print(output["StandardErrorContent"])
                 break
             else:
-                print("[INFO] Waiting request for fulfilled status.")
+                print("[INFO] Waiting for request to be fulfilled.")
         time.sleep(3)
 
     ec2.cancel_spot_fleet_request()

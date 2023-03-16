@@ -28,3 +28,20 @@ class SSM:
         if os.path.exists(".commandid"):
             with open(".commandid", "r") as _file:
                 return _file.read()
+    
+    def get_command_invocation(self, command_id, instance_id):
+        client = self.__session.client("ssm")
+        waiter = client.get_waiter('command_executed')
+
+        while True:
+            try:
+                waiter.wait(CommandId=command_id, InstanceId=instance_id)
+            except botocore.exceptions.WaiterError:
+                pass
+
+            output = client.get_command_invocation(CommandId=command_id, InstanceId=instance_id)
+            if output["Status"] == "Success":
+                break
+            else:
+                yield output
+        return output
