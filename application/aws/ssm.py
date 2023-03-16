@@ -1,5 +1,6 @@
 import os
 import boto3
+import botocore
 
 class SSM:
     def __init__(self):
@@ -13,6 +14,17 @@ class SSM:
             Parameters={"commands": commands}
         )
         command_id = response["Command"]["CommandId"]
-        output = client.get_command_invocation(CommandId=command_id, InstanceId=instance_id)
-        return output["StandardOutputContent"]
 
+        waiter = client.get_waiter('command_executed')
+        try:
+            waiter.wait(CommandId=command_id, InstanceId=instance_id)
+        except botocore.exceptions.WaiterError:
+            pass
+
+        output = client.get_command_invocation(CommandId=command_id, InstanceId=instance_id)
+        return output
+
+    def get_command_id(self):
+        if os.path.exists(".commandid"):
+            with open(".commandid", "r") as _file:
+                return _file.read()

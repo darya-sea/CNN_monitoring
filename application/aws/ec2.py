@@ -250,6 +250,7 @@ class EC2:
                     if instance_statuses["InstanceStatuses"]:
                         for status in instance_statuses["InstanceStatuses"]:
                             if status["InstanceState"]["Name"] == "terminated":
+                                time.sleep(5)
                                 return spot_request
                     else:
                         return spot_request

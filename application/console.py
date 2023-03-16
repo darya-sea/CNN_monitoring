@@ -96,24 +96,33 @@ def request_spot():
                     time.sleep(3)
                     device_name = ec2.attach_volume(instance["InstanceId"])[2]
 
-                    print(
-                        ssm.execute_command(
+                    if (command_id := ssm.get_command_id()):
+                        pass
+                    else:
+                        output = ssm.execute_command(
                             instance["InstanceId"],
                             [
+                                f"mount {device_name} /mnt",
+                                f"mkfs.ext4 {device_name}",
+                                f"mount {device_name} /mnt"
                                 "cd /mnt",
-                                "df -h",
-                                f"ls -la {device_name}",
                                 "git clone https://github.com/darya-sea/CNN_monitoring.git",
-                                "sh CNN_monitoring/application/install.sh",
                                 "cd /mnt/CNN_monitoring",
-                                f"echo aws s3 sync s3://{config.S3_BUCKET} DATA"
+                                "pip3 install virtualenv",
+                                "sh /mnt/CNN_monitoring/application/install.sh",
+                                f"aws s3 sync s3://{config.S3_BUCKET} DATA",
+                                "sh /mnt/CNN_monitoring/application/train.sh"
                             ]
                         )
-                    )
+                        with open(".commandid", "w") as _file:
+                            _file.write(output["CommandId"])
+    
+                        print(output["StandardOutputContent"])
+                        print(output["StandardErrorContent"])
                 break
             else:
                 print("[INFO] Waiting request for fulfilled status.")
-        time.sleep(5)
+        time.sleep(3)
 
     ec2.cancel_spot_fleet_request()
     ec2.delete_volume()
