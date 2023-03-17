@@ -10,6 +10,25 @@ class PrepareData:
         self.__input_folder = input_folder
         self.__output_folder = output_folder
 
+    def backround_remove(self, image_path):
+        image = cv2.imread(image_path)
+
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+        lower_chlorophyll = numpy.array([40, 50, 50])
+        upper_chlorophyll = numpy.array([80, 255, 255])
+
+        mask = cv2.inRange(hsv, lower_chlorophyll, upper_chlorophyll)
+
+        kernel = numpy.ones((5,5), numpy.uint8)
+        mask = cv2.erode(mask, kernel, iterations=1)
+        mask = cv2.dilate(mask, kernel, iterations=1)
+
+        res = cv2.bitwise_and(image, image, mask=mask)
+        bg = numpy.zeros_like(image)
+        bg[mask != 0] = res[mask != 0]
+        cv2.imwrite(image_path, bg)
+
     def get_all_images(self, folder):
         images = []
 
