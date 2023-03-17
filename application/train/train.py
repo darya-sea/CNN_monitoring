@@ -1,12 +1,10 @@
 import os
 import json
 import tensorflow
-import numpy
+import pandas
 
-from keras import Model, utils
+from keras import Model
 from keras.layers import Dense, Flatten, Dropout
-from keras.preprocessing.image import image_utils as keras_image_utils
-from sklearn.preprocessing import LabelBinarizer
 
 
 class Train:
@@ -21,14 +19,14 @@ class Train:
         config.gpu_options.allow_growth = True
         tensorflow.compat.v1.InteractiveSession(config=config)
 
-    def __folder_exists(self, folder):
+    def __path_exists(self, folder):
         if not os.path.exists(folder):
             print(f"[ERROR] Data folder {folder} doesn't exist")
             return False
         return True
 
-    def get_train_generator(self):
-        train_generator, validation_generator = None, None
+    def get_validation_generator(self, csv_file):
+        dataframe_columns = ["image_path", "x", "y", "w", "h", "plant_name"]
 
         datagen = tensorflow.keras.preprocessing.image.ImageDataGenerator(
             rescale=1.0/255.,
@@ -36,122 +34,89 @@ class Train:
             zoom_range=0.2
         )
         
-        train_folder = os.path.join(self.__data_folder, "train")
         validation_folder = os.path.join(self.__data_folder, "validation")
 
-        if self.__folder_exists(train_folder):
-            train_generator = datagen.flow_from_directory(
-                train_folder,
+        if self.__path_exists(validation_folder) and self.__path_exists(csv_file):
+            validation_dataframe = pandas.read_csv(csv_file, names=dataframe_columns, header=None)
+            validation_dataframe['classes_one_hot'] = validation_dataframe[dataframe_columns[5]].str.get_dummies().values.tolist()
+            validation_dataframe['bbox'] = validation_dataframe[
+                [
+                    dataframe_columns[1],
+                    dataframe_columns[2],
+                    dataframe_columns[3],
+                    dataframe_columns[4]
+                ]
+            ].values.tolist()
+
+            validation_generator = datagen.flow_from_dataframe(
+                dataframe=validation_dataframe,
+                directory=validation_folder,
+                x_col=dataframe_columns[0],
+                y_col=["bbox", "classes_one_hot"],
                 batch_size=self.__batch_size,
                 shuffle=True,
-                class_mode="categorical",
-                target_size=self.__taget_size
-            )
-
-        if self.__folder_exists(validation_folder):
-            validation_generator = datagen.flow_from_directory(
-                validation_folder,
-                batch_size=self.__batch_size,
-                shuffle=True,
-                class_mode="categorical",
-                target_size=self.__taget_size
-            )
-        return train_generator, validation_generator
-    
-    def get_train_data(self):
-        label_binarizer = LabelBinarizer()
-
-        train_images = []
-        train_labels = []
-        train_bboxes = []
-        train_paths = []
-
-        validation_images = []
-        validation_labels = []
-        validation_bboxes = []
-        validation_paths = []
-
-        train_annotations = os.path.join(self.__data_folder, "train_annotations.csv")
-        validation_annotations = os.path.join(self.__data_folder, "validation_annotations.csv")
-
-        if os.path.exists(train_annotations):
-            with open(train_annotations, "r") as _file:
-                for line in _file.readlines():
-                    annotations = line.split(",")
-                    image = keras_image_utils.load_img(annotations[0], target_size=self.__taget_size)
-                    h, w = image.size[0],image.size[1]
-
-                    train_images.append(keras_image_utils.img_to_array(image))
-                    train_paths.append(annotations[0])
-                    train_bboxes.append( 
-                        (
-                            float(annotations[1])/w,
-                            float(annotations[2])/h,
-                            float(annotations[3])/w,
-                            float(annotations[4])/h
-                        )
-                    )
-                    train_labels.append(annotations[5])
+                class_mode="multi_output",
+                target_size=self.__taget_size,
+                seed=2
+        )
             
-            train_images = numpy.array(train_images, dtype="float32") / 255.0
-            train_labels = numpy.array(train_labels)
-            train_bboxes = numpy.array(train_bboxes, dtype="float32")
-            train_paths = numpy.array(train_paths)
+        while True:
+            images, labels = validation_generator.next()
+            targets = {
+                'class_label': labels[1],
+                'bounding_box': labels[0]
+            }
+            yield images, targets
 
-            train_labels = label_binarizer.fit_transform(train_labels)
+    def get_train_generator(self, csv_file):
+        dataframe_columns = ["image_path", "x", "y", "w", "h", "plant_name"]
 
-            if len(label_binarizer.classes_) == 2:
-                train_labels = utils.to_categorical(train_labels)
+        datagen = tensorflow.keras.preprocessing.image.ImageDataGenerator(
+            rescale=1.0/255.,
+            shear_range=0.2,
+            zoom_range=0.2
+        )
 
-        if os.path.exists(validation_annotations):
-            with open(validation_annotations, "r") as _file:
-                for line in _file.readlines():
-                    annotations = line.split(",")
-                    image = keras_image_utils.load_img(annotations[0], target_size=self.__taget_size)
-                    h, w = image.size[0],image.size[1]
+        train_folder = os.path.join(self.__data_folder, "train")
 
-                    validation_images.append(keras_image_utils.img_to_array(image))
-                    validation_paths.append(annotations[0])
-                    validation_bboxes.append(
-                        (
-                            float(annotations[1])/w,
-                            float(annotations[2])/h,
-                            float(annotations[3])/w,
-                            float(annotations[4])/h
-                        )
-                    )
-                    validation_labels.append(annotations[5])
+        if self.__path_exists(train_folder) and self.__path_exists(csv_file):
+            train_dataframe = pandas.read_csv(csv_file, names=dataframe_columns, header=None)
+            train_dataframe['classes_one_hot'] = train_dataframe[dataframe_columns[5]].str.get_dummies().values.tolist()
+            train_dataframe['bbox'] = train_dataframe[
+                [
+                    dataframe_columns[1],
+                    dataframe_columns[2],
+                    dataframe_columns[3],
+                    dataframe_columns[4]
+                ]
+            ].values.tolist()
 
-            validation_images = numpy.array(validation_images, dtype="float32") / 255.0
-            validation_labels = numpy.array(validation_labels)
-            validation_bboxes = numpy.array(validation_bboxes, dtype="float32")
-            validation_paths = numpy.array(validation_paths)
+            train_generator = datagen.flow_from_dataframe(
+                dataframe=train_dataframe,
+                directory=train_folder,
+                x_col=dataframe_columns[0],
+                y_col=["bbox", "classes_one_hot"],
+                batch_size=self.__batch_size,
+                shuffle=True,
+                class_mode="multi_output",
+                target_size=self.__taget_size,
+                seed=2
+            )
 
-            validation_labels = label_binarizer.fit_transform(validation_labels)
-
-            if len(label_binarizer.classes_) == 2:
-               validation_labels = utils.to_categorical(validation_labels)
-
-        train_targets = {
-            "class_label": train_labels,
-            "bounding_box": train_bboxes
-        }
-
-        validation_targets = {
-            "class_label": validation_labels,
-            "bounding_box": validation_bboxes
-        }
-
-        return train_images, train_targets, validation_images, validation_targets
+        while True:
+            images, labels = train_generator.next()
+            targets = {
+                'class_label': labels[1],
+                'bounding_box': labels[0]
+            }
+            yield images, targets
 
     def save_classes(self, validation_generator, classes_file):
         with open(classes_file, "w") as _file:
             _file.write(json.dumps(
                 {v: k for k, v in validation_generator.class_indices.items()}))
 
-    def train(self, train_images, train_targets, validation_images, validation_targets, epochs):
-        label_binarizer = LabelBinarizer()
-
+    def train(self, train_generator, validation_generator, epochs):
         output_folder = os.path.join(self.__data_folder, "output/models")
         backup_folder = os.path.join(self.__data_folder, "backup")
 
@@ -180,7 +145,7 @@ class Train:
         softmaxHead = Dropout(0.5)(softmaxHead)
         softmaxHead = Dense(512, activation="relu")(softmaxHead)
         softmaxHead = Dropout(0.5)(softmaxHead)
-        softmaxHead = Dense(len(label_binarizer.classes_), activation="softmax", name="class_label")(softmaxHead)
+        softmaxHead = Dense(5, activation="softmax", name="class_label")(softmaxHead)
 
         vgg_final_model = Model(vgg_model.input, outputs=(bboxHead, softmaxHead))
         vgg_final_model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["acc"])
@@ -198,9 +163,11 @@ class Train:
         early_stopping = tensorflow.keras.callbacks.EarlyStopping(
             monitor="loss", patience=10)
 
-        history = vgg_final_model.fit(
-            train_images, train_targets,
-	        validation_data=(validation_images, validation_targets),
+        history = vgg_final_model.fit_generator(
+            train_generator,
+	        validation_data=validation_generator,
+            steps_per_epoch=100,
+            validation_steps=100,
             epochs = epochs,
             callbacks=[
                 checkpoint,

@@ -46,17 +46,21 @@ def train():
     training = Train(config.DATA_FOLDER)
     visualization = Visualization()
     
-    classes_path = os.path.join(config.DATA_FOLDER, "validation_classes.json")
+    # classes_path = os.path.join(config.DATA_FOLDER, "validation_classes.json")
     history_path = os.path.join(config.DATA_FOLDER, "output")
 
-    # train_generator, validation_generator = training.get_train_generator()
-    # if train_generator and validation_generator:
-        # training.save_classes(validation_generator, classes_path)
+    train_annotations = os.path.join(config.DATA_FOLDER, "train_annotations.csv")
+    validation_annotations = os.path.join(config.DATA_FOLDER, "validation_annotations.csv")
 
+    train_generator = training.get_train_generator(train_annotations)
+    validation_generator = training.get_validation_generator(validation_annotations)
 
-    history = training.train(*training.get_train_data(), config.TRAINING_EPOCHS)
-    visualization.plot_accuracy(history, history_path)
-    visualization.save_history(history, history_path)
+    if train_generator and validation_generator:
+        #training.save_classes(validation_generator, classes_path)
+
+        history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
+        visualization.plot_accuracy(history, history_path)
+        visualization.save_history(history, history_path)
 
 def sync_s3(local_folder=None):
     s3 = S3()
@@ -69,6 +73,14 @@ def sync_s3(local_folder=None):
             print(f"[ERROR] Local folder {local_folder} not found.")
     else:
         s3.download_files(config.S3_BUCKET)
+
+def clean_up():
+    ec2 = EC2()
+    s3 = S3()
+
+    ec2.cancel_spot_fleet_request()
+    s3.delete_bucket(config.S3_BUCKET)
+    ec2.delete_volume()
 
 def prepare_spot():
     ec2 = EC2()
@@ -128,7 +140,7 @@ def request_spot():
 def help(script_name):
     print(
     f"""
-        usage: {script_name} <prepare|train|predict|sync>
+        usage: {script_name} <prepare|train|predict|sync|prepare_spot|request_spot|clean_up>
 
         preapre example: 
           python {script_name} prepare
@@ -143,6 +155,8 @@ def help(script_name):
           python {script_name} prepare_spot
         request_spot example: 
           python {script_name} request_spot
+        clean_up example: 
+          python {script_name} clean_up
     """
     )
 
@@ -166,6 +180,8 @@ if __name__ == "__main__":
                 prepare_spot()
             case "request_spot":
                 request_spot()
+            case "clean_up":
+                clean_up()
                 
     else:
         help(sys.argv[0])
