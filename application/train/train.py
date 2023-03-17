@@ -154,7 +154,7 @@ class Train:
         os.makedirs(backup_folder, exist_ok=True)
 
         filepath = output_folder + \
-            "/vgg-model-{epoch:02d}-acc-{val_acc:.2f}.hdf5"
+            "/vgg-model-{epoch:02d}-acc-{class_label_acc:.2f}.hdf5"
 
         backup_restore = tensorflow.keras.callbacks.BackupAndRestore(
             backup_dir=backup_folder)
