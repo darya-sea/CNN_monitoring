@@ -14,7 +14,7 @@ class PrepareData:
     def remove_background(self, image):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        lower = numpy.array([20, 50, 50])
+        lower = numpy.array([20, 30, 40])
         upper = numpy.array([100, 255, 255])
 
         mask = cv2.inRange(hsv, lower, upper)
@@ -55,7 +55,7 @@ class PrepareData:
             with open(csv_file, "a") as _file:
                 for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
                     (x, y, w, h) = cv2.boundingRect(contour)
-                    if w > 10 or h > 10:
+                    if w > 30 or h > 30:
                         cv2.rectangle(orignal_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         _file.write(f"{output_image},{x},{y},{w},{h},{plant_name}\n")
             
