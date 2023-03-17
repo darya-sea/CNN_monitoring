@@ -16,16 +16,9 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
 
-def prepare(option=None):
+def prepare():
     from prepare.data import PrepareData
-    from prepare.ndvi import NDVI
-
-    if option == "ndvi" or option == None:
-        NDVI().make_ndvi(config.CNN_FOLDER, parallel=True)
-
-    if option == "data" or option == None:
-        PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
-
+    PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
 
 def predict(image_path):
     from train.prediction import Prediction
@@ -111,6 +104,7 @@ def request_spot():
                                 "git clone https://github.com/darya-sea/CNN_monitoring.git",
                                 "cd /mnt/CNN_monitoring",
                                 "pip3 install virtualenv",
+                                "yum install python3-opencv",
                                 "sh /mnt/CNN_monitoring/application/install.sh",
                                 f"aws s3 sync s3://{config.S3_BUCKET} DATA",
                                 "sh /mnt/CNN_monitoring/application/train.sh"
@@ -126,8 +120,8 @@ def request_spot():
                 print("[INFO] Waiting for request to be fulfilled.")
         time.sleep(3)
 
-    ec2.cancel_spot_fleet_request()
-    ec2.delete_volume()
+    # ec2.cancel_spot_fleet_request()
+    # ec2.delete_volume()
 
 def help(script_name):
     print(
@@ -135,13 +129,11 @@ def help(script_name):
         usage: {script_name} <prepare|train|predict|sync>
 
         preapre example: 
-          python {script_name} prepare ndvi
-          python {script_name} prepare data
-          python {script_name} prepare 
+          python {script_name} prepare
         train example: 
           python {script_name} train
         predict example: 
-          python {script_name} predict "CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
+          python {script_name} predict "../CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
         sync example: 
           python {script_name} sync
           python {script_name} sync CNN
@@ -158,7 +150,7 @@ if __name__ == "__main__":
             case "help":
                 help(sys.argv[0])
             case "prepare":
-                prepare(sys.argv[2] if len(sys.argv) > 2 else None)
+                prepare()
             case "train":
                 train()
             case "predict":
@@ -167,10 +159,7 @@ if __name__ == "__main__":
                 else:
                     print(f"usage: {sys.argv[0]} predict <image_path>")
             case "sync":
-                if len(sys.argv) > 2:
-                    sync_s3(sys.argv[2])
-                else:
-                    sync_s3()
+                sync_s3(sys.argv[2] if len(sys.argv) > 2 else None)
             case "prepare_spot":
                 prepare_spot()
             case "request_spot":
