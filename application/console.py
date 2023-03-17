@@ -52,13 +52,17 @@ def train():
     train_annotations = os.path.join(config.DATA_FOLDER, "train_annotations.csv")
     validation_annotations = os.path.join(config.DATA_FOLDER, "validation_annotations.csv")
 
-    train_generator = training.get_train_generator(train_annotations)
-    validation_generator = training.get_validation_generator(validation_annotations)
+    train_generator = training.get_data_flow_generator(train_annotations, "train")
+    validation_generator = training.get_data_flow_generator(validation_annotations, "validation")
 
     if train_generator and validation_generator:
         #training.save_classes(validation_generator, classes_path)
 
-        history = training.train(train_generator, validation_generator, config.TRAINING_EPOCHS)
+        history = training.train(
+            train_generator,
+            validation_generator,
+            config.TRAINING_EPOCHS
+        )
         visualization.plot_accuracy(history, history_path)
         visualization.save_history(history, history_path)
 

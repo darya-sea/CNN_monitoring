@@ -13,6 +13,7 @@ class Train:
         self.__batch_size = 16
         self.__taget_size = (224, 224)
         self.__fix_gpu()
+        self.data_flow_size = {}
 
     def __fix_gpu(self):
         config = tensorflow.compat.v1.ConfigProto()
@@ -25,7 +26,7 @@ class Train:
             return False
         return True
 
-    def get_validation_generator(self, csv_file):
+    def get_data_flow_generator(self, csv_file, data_folder_name):
         dataframe_columns = ["image_path", "x", "y", "w", "h", "plant_name"]
 
         datagen = tensorflow.keras.preprocessing.image.ImageDataGenerator(
@@ -34,12 +35,13 @@ class Train:
             zoom_range=0.2
         )
         
-        validation_folder = os.path.join(self.__data_folder, "validation")
+        data_folder = os.path.join(self.__data_folder, data_folder_name)
 
-        if self.__path_exists(validation_folder) and self.__path_exists(csv_file):
-            validation_dataframe = pandas.read_csv(csv_file, names=dataframe_columns, header=None)
-            validation_dataframe['classes_one_hot'] = validation_dataframe[dataframe_columns[5]].str.get_dummies().values.tolist()
-            validation_dataframe['bbox'] = validation_dataframe[
+        if self.__path_exists(data_folder) and self.__path_exists(csv_file):
+            dataframe = pandas.read_csv(csv_file, names=dataframe_columns, header=None)
+
+            dataframe['classes_one_hot'] = dataframe[dataframe_columns[5]].str.get_dummies().values.tolist()
+            dataframe['bbox'] = dataframe[
                 [
                     dataframe_columns[1],
                     dataframe_columns[2],
@@ -48,9 +50,9 @@ class Train:
                 ]
             ].values.tolist()
 
-            validation_generator = datagen.flow_from_dataframe(
-                dataframe=validation_dataframe,
-                directory=validation_folder,
+            generator = datagen.flow_from_dataframe(
+                dataframe=dataframe,
+                directory=data_folder,
                 x_col=dataframe_columns[0],
                 y_col=["bbox", "classes_one_hot"],
                 batch_size=self.__batch_size,
@@ -61,50 +63,7 @@ class Train:
         )
             
         while True:
-            images, labels = validation_generator.next()
-            targets = {
-                'class_label': labels[1],
-                'bounding_box': labels[0]
-            }
-            yield images, targets
-
-    def get_train_generator(self, csv_file):
-        dataframe_columns = ["image_path", "x", "y", "w", "h", "plant_name"]
-
-        datagen = tensorflow.keras.preprocessing.image.ImageDataGenerator(
-            rescale=1.0/255.,
-            shear_range=0.2,
-            zoom_range=0.2
-        )
-
-        train_folder = os.path.join(self.__data_folder, "train")
-
-        if self.__path_exists(train_folder) and self.__path_exists(csv_file):
-            train_dataframe = pandas.read_csv(csv_file, names=dataframe_columns, header=None)
-            train_dataframe['classes_one_hot'] = train_dataframe[dataframe_columns[5]].str.get_dummies().values.tolist()
-            train_dataframe['bbox'] = train_dataframe[
-                [
-                    dataframe_columns[1],
-                    dataframe_columns[2],
-                    dataframe_columns[3],
-                    dataframe_columns[4]
-                ]
-            ].values.tolist()
-
-            train_generator = datagen.flow_from_dataframe(
-                dataframe=train_dataframe,
-                directory=train_folder,
-                x_col=dataframe_columns[0],
-                y_col=["bbox", "classes_one_hot"],
-                batch_size=self.__batch_size,
-                shuffle=True,
-                class_mode="multi_output",
-                target_size=self.__taget_size,
-                seed=2
-            )
-
-        while True:
-            images, labels = train_generator.next()
+            images, labels = generator.next()
             targets = {
                 'class_label': labels[1],
                 'bounding_box': labels[0]
@@ -153,21 +112,20 @@ class Train:
         os.makedirs(output_folder, exist_ok=True)
         os.makedirs(backup_folder, exist_ok=True)
 
-        filepath = output_folder + \
-            "/vgg-model-{epoch:02d}-acc-{class_label_acc:.2f}.hdf5"
+        filepath = os.path.join(output_folder, "vgg-model-{epoch:02d}-acc-{class_label_acc:.2f}.hdf5")
 
         backup_restore = tensorflow.keras.callbacks.BackupAndRestore(
             backup_dir=backup_folder)
         checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(
-            filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
+            filepath, monitor="class_label_acc", verbose=1, save_best_only=True, mode="max")
         early_stopping = tensorflow.keras.callbacks.EarlyStopping(
             monitor="loss", patience=10)
 
         history = vgg_final_model.fit_generator(
             train_generator,
 	        validation_data=validation_generator,
-            steps_per_epoch=100,
-            validation_steps=100,
+            steps_per_epoch=81000//self.__batch_size,
+            validation_steps=20000//self.__batch_size,
             epochs = epochs,
             callbacks=[
                 checkpoint,
