@@ -62,11 +62,11 @@ class Train:
                 seed=42
             )
 
-        #print(pandas.from_dummies(dataframe[dataframe_columns[5]].str.get_dummies()))
+            #print(pandas.from_dummies(dataframe[dataframe_columns[5]].str.get_dummies()))
 
-        # with open(os.path.join(self.__data_folder, f"output/{data_folder_name}_classes.json"), "w") as _file:
-        #     _file.write(json.dumps(
-        #         {v: k for k, v in generator.class_indices.items()}))
+            # with open(os.path.join(self.__data_folder, f"output/{data_folder_name}_classes.json"), "w") as _file:
+            #     _file.write(json.dumps(
+            #         {v: k for k, v in generator.class_indices.items()}))
 
             return generator
 
