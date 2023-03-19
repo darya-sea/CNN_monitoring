@@ -3,7 +3,6 @@ import os
 import numpy
 import random
 import cv2
-import tempfile
 
 
 class PrepareData:
@@ -79,8 +78,11 @@ class PrepareData:
         train_annotations = os.path.join(self.__output_folder, "train_annotations.csv")
         validation_annotations = os.path.join(self.__output_folder, "validation_annotations.csv")
 
-        shutil.rmtree(train_annotations, ignore_errors=True)
-        shutil.rmtree(validation_annotations, ignore_errors=True)
+        if os.path.exists(train_annotations):
+            os.remove(train_annotations)
+        
+        if os.path.exists(validation_annotations):
+            os.remove(validation_annotations)
 
         for plant_name in os.listdir(self.__input_folder):
             if not os.path.isdir(os.path.join(self.__input_folder, plant_name)):
