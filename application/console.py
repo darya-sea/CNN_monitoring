@@ -34,7 +34,7 @@ def predict(image_path):
 
     if model_file:
         classes = predict.load_classes(classes_path)
-        resutls = predict.predict(image_path, classes, model_file)
+        resutls = predict.predict(image_path, model_file)
         if resutls:
             visualization.show_predicted_images(resutls)
             pprint(resutls)

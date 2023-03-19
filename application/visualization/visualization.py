@@ -2,6 +2,7 @@
 import pandas
 import os
 import numpy
+import imutils
 import cv2
 import matplotlib
 import matplotlib.pyplot
@@ -69,25 +70,31 @@ class Visualization:
             
     def show_predicted_images(self, results):
         results = results[:12]
-        images = []
+        images_count = len(results)
+        count = 1
+
+        figure = matplotlib.pyplot.figure(figsize=(15, images_count*3))
+        figure.subplots_adjust(top=0.98, bottom=0.01, left=0.01, right=0.99, hspace=0.11, wspace=0.03)
 
         for result in results:
+            axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
+    
             image = cv2.imread(result[0])
-            (h, w) = image.shape[:2]
+            (image_h, image_w) = image.shape[:2]
 
-            startX = int(result[1] * w)
-            startY = int(result[2] * h)
-            endX = int(result[3] * w)
-            endY = int(result[4] * h)
+            x = int(result[1] * image_w)
+            y = int(result[2] * image_h)
+            w = int(result[3] * image_w)
+            h = int(result[4] * image_h)
 
-            y = startY - 10 if startY - 10 > 10 else startY + 10
+            y = x - 10 if y - 10 > 10 else y + 10
 
-            cv2.putText(image, os.path.basename(result[0]), (0, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
-            cv2.putText(image, "TEST", (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
-            cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
+            cv2.putText(image, result[5], (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            images.append(image)
+            axes.axis('off')
+            axes.set_title(f"{os.path.basename(result[0])}, class={result[5]}", fontsize=9)
+            axes.imshow(image, aspect="auto")
+            count += 1
 
-        cv2.imshow("Prediction result", numpy.concatenate(images, axis=1))
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        matplotlib.pyplot.show()
