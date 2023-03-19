@@ -6,7 +6,6 @@ import pandas
 
 from keras import Model
 from keras.layers import Dense, Flatten, Dropout
-from keras.optimizers import Adam
 
 
 class Train:
@@ -85,8 +84,6 @@ class Train:
             yield images, targets
 
     def train(self, train_generator, validation_generator, epochs):
-        optimizer = Adam(lr=1e-4)
-
         output_folder = os.path.join(self.__data_folder, "output/models")
         backup_folder = os.path.join(self.__data_folder, "backup")
 
@@ -120,7 +117,7 @@ class Train:
                 "class_label": "categorical_crossentropy",
                 "bounding_box": "mean_squared_error"
             }, 
-            optimizer=optimizer, 
+            optimizer="adam", 
             metrics=["acc"],
             loss_weights={
                 "class_label": 1.0,

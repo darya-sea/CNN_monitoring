@@ -46,6 +46,7 @@ class PrepareData:
 
         if os.path.exists(output_image):
             image = cv2.imread(output_image)
+            (image_h, image_w) = image.shape[:2]
             #orignal_image = image.copy()
 
             image = self.remove_background(image)
@@ -58,6 +59,11 @@ class PrepareData:
                 for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
                     (x, y, w, h) = cv2.boundingRect(contour)
                     if w > 30 or h > 30:
+                        x = float(x) / image_w
+                        y = float(y) / image_h
+                        w = float(w) / image_w
+                        h = float(h) / image_h
+
                         #cv2.rectangle(orignal_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         _file.write(f"{relative_image_path},{x},{y},{w},{h},{plant_name}\n")
             
