@@ -65,7 +65,6 @@ class PrepareData:
 
                         #cv2.rectangle(orignal_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         _file.write(f"{relative_image_path},{x},{y},{w},{h},{plant_name}\n")
-                        break
             
             #cv2.imwrite(output_image, orignal_image)
 
