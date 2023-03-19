@@ -60,7 +60,7 @@ class Train:
                 class_mode="multi_output",
                 target_size=self.__taget_size,
                 seed=42
-        )
+            )
 
         #print(pandas.from_dummies(dataframe[dataframe_columns[5]].str.get_dummies()))
 
@@ -68,7 +68,7 @@ class Train:
         #     _file.write(json.dumps(
         #         {v: k for k, v in generator.class_indices.items()}))
 
-        return generator
+            return generator
 
     def __create_generator(self, data_flow_iterator):
         while True:
