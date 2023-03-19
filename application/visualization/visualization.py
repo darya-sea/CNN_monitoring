@@ -1,6 +1,8 @@
     
 import pandas
 import os
+import numpy
+import cv2
 import imutils
 import matplotlib
 import matplotlib.pyplot
@@ -36,21 +38,25 @@ class Visualization:
             
     def show_predicted_images(self, results):
         results = results[:12]
-
-        images_count = len(results)
-        count = 1
-
-        figure = matplotlib.pyplot.figure(figsize=(15, images_count*3))
+        images = []
 
         for result in results:
-            for image_path, image_class in result.items():
-                image = matplotlib.image.imread(image_path)
-                image = imutils.opencv2matplotlib(image)
+            image = cv2.imread(result[0])
+            (h, w) = image.shape[:2]
 
-                axes = figure.add_subplot(round(images_count/4) + 1, 4, count)
-                axes.axis('off')
-                axes.imshow(image, aspect="auto")
-                axes.set_title(image_class, fontsize=10)
-                count += 1
+            startX = int(result[1] * w)
+            startY = int(result[2] * h)
+            endX = int(result[3] * w)
+            endY = int(result[4] * h)
 
-        matplotlib.pyplot.show()
+            y = startY - 10 if startY - 10 > 10 else startY + 10
+
+            cv2.putText(image, os.path.basename(result[0]), (0, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+            cv2.putText(image, "TEST", (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+            cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
+
+            images.append(image)
+
+        cv2.imshow("Prediction result", numpy.concatenate(images, axis=1))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()

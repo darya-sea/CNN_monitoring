@@ -28,7 +28,7 @@ def predict(image_path):
     visualization = Visualization()
 
     models_path = os.path.join(config.DATA_FOLDER, "output/models")
-    classes_path = os.path.join(config.DATA_FOLDER, "validation_classes.json")
+    classes_path = os.path.join(config.DATA_FOLDER, "output/models/validation_classes.json")
 
     model_file = predict.get_best_model(models_path)
 
@@ -55,16 +55,14 @@ def train():
     train_generator = training.get_data_flow_generator(train_annotations, "train")
     validation_generator = training.get_data_flow_generator(validation_annotations, "validation")
 
-    if train_generator and validation_generator:
-        #training.save_classes(validation_generator, classes_path)
-
-        history = training.train(
-            train_generator,
-            validation_generator,
-            config.TRAINING_EPOCHS
-        )
-        visualization.plot_accuracy(history, history_path)
-        visualization.save_history(history, history_path)
+    # if train_generator and validation_generator:
+    #     history = training.train(
+    #         train_generator,
+    #         validation_generator,
+    #         config.TRAINING_EPOCHS
+    #     )
+    #     visualization.plot_accuracy(history, history_path)
+    #     visualization.save_history(history, history_path)
 
 def sync_s3(local_folder=None):
     s3 = S3()

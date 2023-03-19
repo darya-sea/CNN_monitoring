@@ -48,6 +48,7 @@ class PrepareData:
             #orignal_image = image.copy()
 
             image = self.remove_background(image)
+            cv2.imwrite(output_image, image)
 
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             threshold = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
