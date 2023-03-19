@@ -1,12 +1,12 @@
 import os
 import json
+import numpy
 import tensorflow
 import pandas
 
 from keras import Model
 from keras.layers import Dense, Flatten, Dropout
 from keras.optimizers import Adam
-from sklearn.preprocessing import LabelBinarizer
 
 
 class Train:
@@ -62,11 +62,8 @@ class Train:
                 target_size=self.__taget_size,
                 seed=42
         )
-            
-        # lb = LabelBinarizer()
-        # labels = lb.fit_transform(dataframe["classes_one_hot"])
-        # print(dir(labels))
-        # print(generator.classes)
+
+        #print(pandas.from_dummies(dataframe[dataframe_columns[5]].str.get_dummies()))
 
         # with open(os.path.join(self.__data_folder, f"output/{data_folder_name}_classes.json"), "w") as _file:
         #     _file.write(json.dumps(
@@ -77,6 +74,10 @@ class Train:
     def __create_generator(self, data_flow_iterator):
         while True:
             images, labels = data_flow_iterator.next()
+
+            images = numpy.array(images, dtype="float32") / 255.0
+            labels[0] = numpy.array(labels[0], dtype="float32")
+
             targets = {
                 'class_label': labels[1],
                 'bounding_box': labels[0]

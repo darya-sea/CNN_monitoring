@@ -5,7 +5,6 @@ pandas
 imageio
 imagecodecs
 rasterio
-boto3
 tensorflow==2.11
 pysimplegui
 imutils
