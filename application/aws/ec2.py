@@ -258,7 +258,7 @@ class EC2:
             print(f"[INFO] Not found active spot fleet requests.")
         return spot_request
 
-    def request_spot_fleet(self):
+    def request_spot_fleet(self, instance_types):
         client = self.__session.client("ec2")
         
         if (spot_request := self.get_active_spot_fleet_request()):
@@ -284,62 +284,7 @@ class EC2:
                             "LaunchTemplateName": self.__launch_template,
                             "Version": "$Latest"
                         },
-                        "Overrides": [
-                            {
-                                "InstanceType": "t3a.xlarge"
-                            },
-                            {
-                                "InstanceType": "t3.xlarge"
-                            },
-                            {
-                                "InstanceType": "c5a.xlarge"
-                            },
-                            {
-                                "InstanceType": "c6i.xlarge"
-                            },
-                            {
-                                "InstanceType": "m5.xlarge"
-                            },
-                            {
-                                "InstanceType": "c4.xlarge"
-                            },
-                            {
-                                "InstanceType": "r4.xlarge"
-                            },
-                            {
-                                "InstanceType": "r5n.xlarge"
-                            },
-                            {
-                                "InstanceType": "m6i.xlarge"
-                            },
-                            {
-                                "InstanceType": "t2.xlarge"
-                            },
-                            {
-                                "InstanceType": "r5.xlarge"
-                            },
-                            {
-                                "InstanceType": "c6a.xlarge"
-                            },
-                            {
-                                "InstanceType": "r6i.xlarge"
-                            },
-                            {
-                                "InstanceType": "m6a.xlarge"
-                            },
-                            {
-                                "InstanceType": "r6a.xlarge"
-                            },
-                            {
-                                "InstanceType": "c5n.xlarge"
-                            },
-                            {
-                                "InstanceType": "m5a.xlarge"
-                            },
-                            {
-                                "InstanceType": "c5.xlarge"
-                            }
-                        ]
+                        "Overrides": instance_types
                     }
                 ]
             }

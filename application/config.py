@@ -12,3 +12,60 @@ POOL_SIZE = 6
 # AWS params
 S3_BUCKET = "cnn-data"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+EC2_INSTANCE_TYPES = [
+    {
+        "InstanceType": "t3a.xlarge"
+    },
+    {
+        "InstanceType": "t3.xlarge"
+    },
+    {
+        "InstanceType": "c5a.xlarge"
+    },
+    {
+        "InstanceType": "c6i.xlarge"
+    },
+    {
+        "InstanceType": "m5.xlarge"
+    },
+    {
+        "InstanceType": "c4.xlarge"
+    },
+    {
+        "InstanceType": "r4.xlarge"
+    },
+    {
+        "InstanceType": "r5n.xlarge"
+    },
+    {
+        "InstanceType": "m6i.xlarge"
+    },
+    {
+        "InstanceType": "t2.xlarge"
+    },
+    {
+        "InstanceType": "r5.xlarge"
+    },
+    {
+        "InstanceType": "c6a.xlarge"
+    },
+    {
+        "InstanceType": "r6i.xlarge"
+    },
+    {
+        "InstanceType": "m6a.xlarge"
+    },
+    {
+        "InstanceType": "r6a.xlarge"
+    },
+    {
+        "InstanceType": "c5n.xlarge"
+    },
+    {
+        "InstanceType": "m5a.xlarge"
+    },
+    {
+        "InstanceType": "c5.xlarge"
+    }
+]

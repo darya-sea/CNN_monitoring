@@ -95,7 +95,7 @@ def request_spot():
     ssm = SSM()
 
     ec2.create_volume()
-    ec2.request_spot_fleet()
+    ec2.request_spot_fleet(config.EC2_INSTANCE_TYPES)
 
     while True:
         if (spot_request := ec2.get_active_spot_fleet_request()):
@@ -104,39 +104,41 @@ def request_spot():
                     time.sleep(3)
                     device_name = ec2.attach_volume(instance["InstanceId"])[2]
 
-                    if (command_id := ssm.get_command_id()):
-                        for output in ssm.get_command_invocation(command_id, instance["InstanceId"]):
-                            print(output["StandardOutputContent"])
-                            print(output["StandardErrorContent"])
-                    else:
-                        output = ssm.execute_command(
-                            instance["InstanceId"],
-                            [
-                                f"mount {device_name} /mnt",
-                                f"mkfs.ext4 {device_name}",
-                                f"mount {device_name} /mnt"
-                                "cd /mnt",
-                                "git clone https://github.com/darya-sea/CNN_monitoring.git",
-                                "cd /mnt/CNN_monitoring",
-                                "pip3 install virtualenv",
-                                "yum install python3-opencv",
-                                "sh /mnt/CNN_monitoring/application/install.sh",
-                                f"aws s3 sync s3://{config.S3_BUCKET} DATA",
-                                "sh /mnt/CNN_monitoring/application/train.sh"
-                            ]
-                        )
-                        with open(".commandid", "w") as _file:
-                            _file.write(output["CommandId"])
-    
-                        print(output["StandardOutputContent"])
-                        print(output["StandardErrorContent"])
+                    output = ssm.execute_command(
+                        instance["InstanceId"],
+                        [
+                            f"mount {device_name} /mnt",
+                            f"mkfs.ext4 {device_name}",
+                            f"mount {device_name} /mnt",
+                            "yum install opencv-python -y",
+                            "pip3 install virtualenv",
+                            "cd /mnt",
+                            "touch /mnt/test",
+                            "git clone https://github.com/darya-sea/CNN_monitoring.git",
+                            "sh /mnt/CNN_monitoring/application/install.sh",
+                            f"aws s3 sync s3://{config.S3_BUCKET} .",
+                            "sh /mnt/CNN_monitoring/application/train.sh"
+                        ]
+                    )
+                    with open(".commandid", "w") as _file:
+                        _file.write(f"{instance['InstanceId']}:{output['CommandId']}")
+
+                    print("------- Success command -------\n",
+                        f"{output['StandardOutputContent']}\n"
+                    )
+
+                    print(
+                        "------- Error command ------- \n",
+                        f"{output['StandardErrorContent']}\n",
+                        "--------------------------------"
+                    )
                 break
             else:
                 print("[INFO] Waiting for request to be fulfilled.")
         time.sleep(3)
 
-    # ec2.cancel_spot_fleet_request()
-    # ec2.delete_volume()
+    ec2.cancel_spot_fleet_request()
+    ec2.delete_volume()
 
 def help(script_name):
     print(
