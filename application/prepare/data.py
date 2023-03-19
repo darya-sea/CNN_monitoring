@@ -42,6 +42,7 @@ class PrepareData:
 
     def make_annotations(self, csv_file, output_image):
         plant_name = os.path.basename(os.path.dirname(output_image))
+        relative_image_path = os.path.join(plant_name, os.path.basename(output_image))
 
         if os.path.exists(output_image):
             image = cv2.imread(output_image)
@@ -58,7 +59,7 @@ class PrepareData:
                     (x, y, w, h) = cv2.boundingRect(contour)
                     if w > 30 or h > 30:
                         #cv2.rectangle(orignal_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        _file.write(f"{output_image},{x},{y},{w},{h},{plant_name}\n")
+                        _file.write(f"{relative_image_path},{x},{y},{w},{h},{plant_name}\n")
             
             #cv2.imwrite(output_image, orignal_image)
 
