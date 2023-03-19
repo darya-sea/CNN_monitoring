@@ -74,9 +74,6 @@ class Train:
         while True:
             images, labels = data_flow_iterator.next()
 
-            images = numpy.array(images, dtype="float32") / 255.0
-            labels[0] = numpy.array(labels[0], dtype="float32")
-
             targets = {
                 'class_label': labels[1],
                 'bounding_box': labels[0]
