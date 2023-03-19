@@ -63,9 +63,10 @@ class Train:
                 seed=42
         )
             
-        lb = LabelBinarizer()
-        labels = lb.fit_transform(dataframe["classes_one_hot"])
-        print(dir(labels))
+        # lb = LabelBinarizer()
+        # labels = lb.fit_transform(dataframe["classes_one_hot"])
+        # print(dir(labels))
+        # print(generator.classes)
 
         # with open(os.path.join(self.__data_folder, f"output/{data_folder_name}_classes.json"), "w") as _file:
         #     _file.write(json.dumps(

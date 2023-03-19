@@ -46,7 +46,6 @@ def train():
     training = Train(config.DATA_FOLDER)
     visualization = Visualization()
     
-    # classes_path = os.path.join(config.DATA_FOLDER, "validation_classes.json")
     history_path = os.path.join(config.DATA_FOLDER, "output")
 
     train_annotations = os.path.join(config.DATA_FOLDER, "train_annotations.csv")
@@ -55,14 +54,14 @@ def train():
     train_generator = training.get_data_flow_generator(train_annotations, "train")
     validation_generator = training.get_data_flow_generator(validation_annotations, "validation")
 
-    # if train_generator and validation_generator:
-    #     history = training.train(
-    #         train_generator,
-    #         validation_generator,
-    #         config.TRAINING_EPOCHS
-    #     )
-    #     visualization.plot_accuracy(history, history_path)
-    #     visualization.save_history(history, history_path)
+    if train_generator and validation_generator:
+        history = training.train(
+            train_generator,
+            validation_generator,
+            config.TRAINING_EPOCHS
+        )
+        visualization.plot_accuracy(history, history_path)
+        visualization.save_history(history, history_path)
 
 def sync_s3(local_folder=None):
     s3 = S3()
