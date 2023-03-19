@@ -113,10 +113,9 @@ def request_spot():
                             "yum install opencv-python -y",
                             "pip3 install virtualenv",
                             "cd /mnt",
-                            "touch /mnt/test",
                             "git clone https://github.com/darya-sea/CNN_monitoring.git",
                             "sh /mnt/CNN_monitoring/application/install.sh",
-                            f"aws s3 sync s3://{config.S3_BUCKET} .",
+                            f"aws s3 sync s3://{config.S3_BUCKET}/DATA .",
                             "sh /mnt/CNN_monitoring/application/train.sh"
                         ]
                     )
@@ -124,12 +123,12 @@ def request_spot():
                         _file.write(f"{instance['InstanceId']}:{output['CommandId']}")
 
                     print("------- Success command -------\n",
-                        f"{output['StandardOutputContent']}\n"
+                        f"{output['StandardOutputContent']}"
                     )
 
                     print(
                         "------- Error command ------- \n",
-                        f"{output['StandardErrorContent']}\n",
+                        f"{output['StandardErrorContent']}",
                         "--------------------------------"
                     )
                 break
@@ -139,6 +138,14 @@ def request_spot():
 
     ec2.cancel_spot_fleet_request()
     ec2.delete_volume()
+
+def show_history():
+    from visualization.visualization import Visualization
+
+    visualization = Visualization()
+    visualization.show_from_json(
+        os.path.join(config.DATA_FOLDER, "output/model_history.json")
+    )
 
 def help(script_name):
     print(
@@ -160,6 +167,8 @@ def help(script_name):
           python {script_name} request_spot
         clean_up example: 
           python {script_name} clean_up
+        show_history example: 
+          python {script_name} show_history
     """
     )
 
@@ -185,6 +194,8 @@ if __name__ == "__main__":
                 request_spot()
             case "clean_up":
                 clean_up()
+            case "show_history":
+                show_history()
                 
     else:
         help(sys.argv[0])

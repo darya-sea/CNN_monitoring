@@ -3,12 +3,11 @@ import pandas
 import os
 import numpy
 import cv2
-import imutils
 import matplotlib
 import matplotlib.pyplot
 
 class Visualization:
-    def plot_accuracy(self, history, path, show_plot=False):
+    def plot_accuracy(self, history, path):
         os.makedirs(path, exist_ok=True)
 
         dataframe = pandas.DataFrame(history.history)
@@ -18,10 +17,42 @@ class Visualization:
         matplotlib.pyplot.xlabel("Epoch")
         matplotlib.pyplot.ylabel("Metric")
         matplotlib.pyplot.savefig(f"{path}/model_history.png")
-        
-        if show_plot:
-            matplotlib.pyplot.show(path)
         matplotlib.pyplot.close()
+    
+    def show_from_json(self, json_file):
+        if os.path.exists(json_file):
+            dataframe = pandas.read_json(json_file)
+
+            plots = [
+                {
+                    "filter": ("loss", "class_label_loss", "class_label_acc"),
+                    "title": "Training and Validation Accuracy (labels)",
+                    "figure_path": "model_history_labels.png"
+                },
+                {
+                    "filter": ("bounding_box_loss", "bounding_box_acc"),
+                    "title": "Training and Validation Accuracy (boxes)",
+                    "figure_path": "model_history_boxes.png"
+                }
+            ]
+
+            for plot in plots:
+                plot_dataframe = dataframe.drop(
+                    columns=[
+                        column
+                        for column in dataframe.columns
+                        if column not in plot["filter"]
+                    ]
+                )
+                plot_dataframe.plot(figsize=(5, 5))
+
+                matplotlib.pyplot.title(f"Training and Validation Accuracy")
+                matplotlib.pyplot.xlabel("Epoch")
+                matplotlib.pyplot.ylabel("Metric")
+                matplotlib.pyplot.savefig(os.path.join(os.path.dirname(json_file), plot["figure_path"]))
+                matplotlib.pyplot.show()
+                matplotlib.pyplot.close()
+
 
     def save_history(self, history, path):
         os.makedirs(path, exist_ok=True)
