@@ -9,5 +9,6 @@ tensorflow==2.11
 pysimplegui
 imutils
 boto3
+scipy
 # tensorflow-macos==2.10
 # tensorflow-metal==0.6
