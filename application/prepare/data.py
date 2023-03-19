@@ -66,6 +66,7 @@ class PrepareData:
 
                         #cv2.rectangle(orignal_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         _file.write(f"{relative_image_path},{x},{y},{w},{h},{plant_name}\n")
+                        break
             
             #cv2.imwrite(output_image, orignal_image)
 
@@ -75,10 +76,11 @@ class PrepareData:
                 f"[ERROR] Input and output folders are same: {self.__input_folder}. Stopped.")
             return False
 
-        shutil.rmtree(self.__output_folder, ignore_errors=True)
-
         train_annotations = os.path.join(self.__output_folder, "train_annotations.csv")
         validation_annotations = os.path.join(self.__output_folder, "validation_annotations.csv")
+
+        shutil.rmtree(train_annotations, ignore_errors=True)
+        shutil.rmtree(validation_annotations, ignore_errors=True)
 
         for plant_name in os.listdir(self.__input_folder):
             if not os.path.isdir(os.path.join(self.__input_folder, plant_name)):
@@ -86,6 +88,9 @@ class PrepareData:
 
             train_folder = os.path.join(self.__output_folder, "train", plant_name)
             validation_folder = os.path.join(self.__output_folder, "validation", plant_name)
+
+            shutil.rmtree(train_folder, ignore_errors=True)
+            shutil.rmtree(validation_folder, ignore_errors=True)
 
             os.makedirs(train_folder, exist_ok=True)
             os.makedirs(validation_folder, exist_ok=True)
