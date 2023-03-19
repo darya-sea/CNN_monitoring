@@ -10,7 +10,7 @@ from keras.applications import imagenet_utils
 
 class Prediction:
     def __init__(self):
-        self.__supported_formats = (".tiff", ".tif", ".png", ".jpg", ".jpeg")
+        self.__supported_formats = (".tiff", ".tif")
 
     def get_best_model(self, models_path):
         if not os.path.exists(models_path):
