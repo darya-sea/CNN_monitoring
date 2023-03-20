@@ -28,16 +28,15 @@ def predict(image_path):
     visualization = Visualization()
 
     models_path = os.path.join(config.DATA_FOLDER, "output/models")
-    classes_path = os.path.join(config.DATA_FOLDER, "output/models/validation_classes.json")
-
     model_file = predict.get_best_model(models_path)
+    plant_types_file = os.path.join(config.DATA_FOLDER, "output/models/train_plant_types.json")
 
     if model_file:
-        classes = predict.load_classes(classes_path)
+        plant_types = predict.load_classes(plant_types_file)
         resutls = predict.predict(image_path, model_file)
         if resutls:
-            visualization.show_predicted_images(resutls)
-            pprint(resutls)
+            visualization.show_predicted_images(resutls, plant_types)
+            #pprint(resutls)
 
 def train():
     from train.train import Train
