@@ -2,10 +2,10 @@ import os
 import json
 import keras
 import numpy
+import cv2
 import keras.preprocessing
 
 from keras.preprocessing.image import image_utils as keras_image_utils
-from keras.applications import imagenet_utils
 
 
 class Prediction:
@@ -32,18 +32,62 @@ class Prediction:
             classes = json.loads(_file.read())
 
         return classes
+    
+    def remove_background(self, image):
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+        lower = numpy.array([20, 30, 40])
+        upper = numpy.array([100, 255, 255])
+
+        mask = cv2.inRange(hsv, lower, upper)
+
+        kernel = numpy.ones((5,5), numpy.uint8)
+        mask = cv2.erode(mask, kernel, iterations=1)
+        mask = cv2.dilate(mask, kernel, iterations=1)
+
+        res = cv2.bitwise_and(image, image, mask=mask)
+        bg = numpy.zeros_like(image)
+        bg[mask != 0] = res[mask != 0]
+        return bg
+
+    def get_bonding_boxes(self, image):
+        bonding_boxes = []
+
+        image = self.remove_background(image)
+
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        threshold = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+        for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
+            (x, y, w, h) = cv2.boundingRect(contour)
+            if w > 30 or h > 30:
+                bonding_boxes.append({
+                    "image": image[y:y+h, x:x+w],
+                    "bbox": (x, y, w, h)
+                })
+        return bonding_boxes
 
     def _predict(self, model, image_path):
         print(f"Test image: {image_path}")
+        predictions = []
 
-        image = keras_image_utils.load_img(image_path, target_size=(224, 224))
-        image = keras_image_utils.img_to_array(image)
-        image = numpy.expand_dims(image, axis=0)
+        image = cv2.imread(image_path)
 
-        (box_preds, label_preds) = model.predict(image)
-        (x, y, w, h) = box_preds[0]
+        for bbox in self.get_bonding_boxes(image):
+            image = cv2.resize(bbox["image"], (224, 224)).reshape(1, 224, 224, 3)
+            (box_preds, label_preds) = model.predict(image)
+    
+            max_prob_index = numpy.argmax(label_preds[0])
+            probability = label_preds[0][max_prob_index]*100
 
-        return int(x), int(y), int(w), int(h), str(numpy.argmax(label_preds))
+            if probability > 90:
+                predictions.append({
+                    "label_preds": label_preds,
+                    "plant_type": max_prob_index,
+                    "bbox": bbox["bbox"]
+                })
+
+        return predictions
 
     def predict(self, path, model_file):
         results = []
@@ -54,11 +98,11 @@ class Prediction:
             print(f"Runing prediction on folder {path}")
             for image_path in os.scandir(path):
                 if image_path.path.endswith(self.__supported_formats):
-                    results.append([image_path.path, *self._predict(model, image_path.path)])
+                    results.append([image_path.path, self._predict(model, image_path.path)])
         else:
             if path.endswith(self.__supported_formats):
                 print(f"Runing prediction on file {path}")
-                results.append([path, *self._predict(model, path)])
+                results.append([path, self._predict(model, path)])
             else:
                 print(f"Not supported file format. Use one of {self.__supported_formats}")
         return results
