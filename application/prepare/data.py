@@ -55,6 +55,8 @@ class PrepareData:
             threshold = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
             with open(csv_file, "a") as _file:
+                _file.write(f"image_path,x,y,w,h,plant_name\n")
+
                 for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
                     (x, y, w, h) = cv2.boundingRect(contour)
                     if w > 30 or h > 30:
