@@ -100,18 +100,18 @@ def request_spot():
                     output = ssm.execute_command(
                         instance["InstanceId"],
                         [
-                            f"mount {device_name} /mnt &> /var/log/train.log",
-                            f"mkfs.ext4 {device_name} &>> /var/log/train.log",
-                            f"mount {device_name} /mnt &>> /var/log/train.log",
-                            "cd /mnt >> /var/log/train.log &>> /var/log/train.log",
-                            "git clone https://github.com/darya-sea/CNN_monitoring.git &>> /var/log/train.log",
-                            "cd /mnt/CNN_monitoring &>> /var/log/train.log",
-                            f"aws s3 sync s3://{config.S3_BUCKET}/DATA DATA &>> /var/log/train.log",
-                            "yum install opencv-python -y &>> /var/log/train.log",
-                            "pip3 install virtualenv &>> /var/log/train.log",
-                            "git checkout crop &>> /var/log/train.log",
-                            "sh /mnt/CNN_monitoring/application/install.sh &>> /var/log/train.log",
-                            "sh /mnt/CNN_monitoring/application/train.sh &>> /var/log/train.log"
+                            f"mount {device_name} /mnt > /var/log/train.log 2>&1",
+                            f"mkfs.ext4 {device_name} >> /var/log/train.log 2>&1",
+                            f"mount {device_name} /mnt >> /var/log/train.log 2>&1",
+                            "cd /mnt >> /var/log/train.log >> /var/log/train.log 2>&1",
+                            "git clone https://github.com/darya-sea/CNN_monitoring.git >> /var/log/train.log 2>&1",
+                            "cd /mnt/CNN_monitoring >> /var/log/train.log 2>&1",
+                            f"aws s3 sync s3://{config.S3_BUCKET}/DATA DATA >> /var/log/train.log 2>&1",
+                            "yum install opencv-python -y >> /var/log/train.log 2>&1",
+                            "pip3 install virtualenv >> /var/log/train.log 2>&1",
+                            "git checkout crop >> /var/log/train.log 2>&1",
+                            "sh /mnt/CNN_monitoring/application/install.sh >> /var/log/train.log 2>&1",
+                            "sh /mnt/CNN_monitoring/application/train.sh >> /var/log/train.log 2>&1"
                         ]
                     )
                     output = ssm.execute_command(
@@ -128,14 +128,17 @@ def request_spot():
     # ec2.delete_volume()
 
 def spot_status():
+    ec2 = EC2()
     ssm = SSM()
 
-    for commands in ssm.list_commands()["Commands"]:
-        output = ssm.execute_command(
-            commands["InstanceIds"][0], 
-            ["cat /var/log/train.log"]
-        )
-        print(output["StandardOutputContent"])
+    if (spot_request := ec2.get_active_spot_fleet_request()):
+        if spot_request["ActivityStatus"] == "fulfilled":
+            for instance in ec2.get_spot_fleet_instances(spot_request["SpotFleetRequestId"]):
+                output = ssm.execute_command(
+                    instance["InstanceId"], 
+                    ["tail -n 20 /var/log/train.log"]
+                )
+                print(output["StandardOutputContent"].replace("--output truncated--", ""))
 
 def show_history():
     from visualization.visualization import Visualization
