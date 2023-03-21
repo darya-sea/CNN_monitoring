@@ -15,6 +15,12 @@ class Train:
         self.__taget_size = (224, 224)
         self.__fix_gpu()
 
+        self.__output_folder = os.path.join(self.__data_folder, "output/models")
+        self.__backup_folder = os.path.join(self.__data_folder, "backup")
+
+        os.makedirs(self.__output_folder, exist_ok=True)
+        os.makedirs(self.__backup_folder, exist_ok=True)
+
     def __fix_gpu(self):
         config = tensorflow.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
@@ -61,13 +67,14 @@ class Train:
                 target_size=self.__taget_size,
                 seed=42
             )
+            plant_types = dataframe[dataframe_columns[5]].str.get_dummies().keys().to_frame(index=False).to_dict()[0]
+            json_file = os.path.join(
+                self.__output_folder,
+                f"{data_folder_name}_plant_types.json"
+            )
 
-            #print(pandas.from_dummies(dataframe[dataframe_columns[5]].str.get_dummies()))
-
-            # with open(os.path.join(self.__data_folder, f"output/{data_folder_name}_classes.json"), "w") as _file:
-            #     _file.write(json.dumps(
-            #         {v: k for k, v in generator.class_indices.items()}))
-
+            with open(json_file, "w") as _file:
+                _file.write(json.dumps(plant_types))
             return generator
 
     def __create_generator(self, data_flow_iterator):
@@ -81,9 +88,6 @@ class Train:
             yield images, targets
 
     def train(self, train_generator, validation_generator, epochs):
-        output_folder = os.path.join(self.__data_folder, "output/models")
-        backup_folder = os.path.join(self.__data_folder, "backup")
-
         vgg_model = tensorflow.keras.applications.vgg16.VGG16(
             pooling="avg",
             weights="imagenet",
@@ -122,12 +126,9 @@ class Train:
             }
         )
 
-        os.makedirs(output_folder, exist_ok=True)
-        os.makedirs(backup_folder, exist_ok=True)
+        filepath = os.path.join(self.__output_folder , "vgg-model-{epoch:02d}-acc-{class_label_acc:.2f}.hdf5")
 
-        filepath = os.path.join(output_folder, "vgg-model-{epoch:02d}-acc-{class_label_acc:.2f}.hdf5")
-
-        backup_restore = tensorflow.keras.callbacks.BackupAndRestore(backup_dir=backup_folder)
+        backup_restore = tensorflow.keras.callbacks.BackupAndRestore(backup_dir=self.__backup_folder)
         checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(
             filepath, monitor="class_label_acc", verbose=1, save_best_only=True, mode="max")
         early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=10)
