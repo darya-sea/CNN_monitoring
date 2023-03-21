@@ -56,6 +56,7 @@ class PrepareData:
                 )
                 images_count+=1
 
+        return images_count
 
     def prepare_images(self):
         if self.__input_folder == self.__output_folder:
@@ -98,12 +99,7 @@ class PrepareData:
             train_images_count = len(train_images)
             validation_images_count = len(validation_images)
 
-            print(
-                f"Data for '{plant_name}':\n",
-				f"Images: {images_count}\n",
-				f"Training: {train_images_count}\n",
-				f"Validation: {validation_images_count}\n"
-			)
+            print(f"Preparing data for '{plant_name}'...")
 
             # Copy-paste images
             for image_path in train_images:
@@ -116,7 +112,7 @@ class PrepareData:
                     )
 
                 #shutil.copy(image_path, output_image)
-                self.make_cropped_images(image_path, output_image)
+                train_images_count += self.make_cropped_images(image_path, output_image)
 
             for image_path in validation_images:
                 output_image = os.path.join(validation_folder, os.path.basename(image_path))
@@ -128,4 +124,11 @@ class PrepareData:
                     )
 
                 #shutil.copy(image_path, output_image)
-                self.make_cropped_images(image_path, output_image)
+                validation_images_count += self.make_cropped_images(image_path, output_image)
+            
+            print(
+                f"Data for '{plant_name}':\n",
+                f"Input images: {images_count}\n",
+				f"Training: {train_images_count}\n",
+				f"Validation: {validation_images_count}\n"
+			)

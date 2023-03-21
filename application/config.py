@@ -9,10 +9,11 @@ TRAINING_EPOCHS = 60
 
 POOL_SIZE = 6
 
-# AWS params
-S3_BUCKET = "cnn-data"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
+# AWS params
+S3_BUCKET = "cnn-data"
+EC2_MAX_PRICE = "0.07"
 EC2_INSTANCE_TYPES = [
     {
         "InstanceType": "t3a.xlarge"

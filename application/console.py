@@ -77,7 +77,7 @@ def clean_up():
 
     ec2.cancel_spot_fleet_request()
     #s3.delete_bucket(config.S3_BUCKET)
-    ec2.delete_volume()
+    # ec2.delete_volume()
 
 def request_spot():
     ec2 = EC2()
@@ -87,7 +87,7 @@ def request_spot():
     ec2.create_instance_profile()
     ec2.create_launch_template()
     ec2.create_spot_fleet_role()
-    ec2.request_spot_fleet(config.EC2_INSTANCE_TYPES)
+    ec2.request_spot_fleet(config.EC2_INSTANCE_TYPES, config.EC2_MAX_PRICE)
 
     while True:
         if (spot_request := ec2.get_active_spot_fleet_request()):

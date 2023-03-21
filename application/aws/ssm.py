@@ -26,22 +26,19 @@ class SSM:
 
     def get_command_invocation(self, command_id, instance_id):
         client = self.__session.client("ssm")
-        waiter = client.get_waiter('command_executed')
-
         command_invocations = client.list_command_invocations(CommandId=command_id, InstanceId=instance_id)
 
         if command_invocations["CommandInvocations"]:
             while True:
-                try:
-                    waiter.wait(CommandId=command_id, InstanceId=instance_id)
-                except botocore.exceptions.WaiterError:
-                    pass
-
                 output = client.get_command_invocation(CommandId=command_id, InstanceId=instance_id)
                 if output["Status"] in ("Failed", "Success"):
                     break
+                else:
+                    yield output
         return output
     
     def list_commands(self, status="InProgress"):
         client = self.__session.client("ssm")
-        return client.list_commands(Filters=[{"key": "Status", "value": status}])
+        if status:
+            return client.list_commands(Filters=[{"key": "Status", "value": status}])["Commands"]
+        return client.list_commands()["Commands"]

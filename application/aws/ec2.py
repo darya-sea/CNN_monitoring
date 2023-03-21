@@ -258,7 +258,7 @@ class EC2:
             print(f"[INFO] Not found active spot fleet requests.")
         return spot_request
 
-    def request_spot_fleet(self, instance_types):
+    def request_spot_fleet(self, instance_types, max_price):
         client = self.__session.client("ec2")
         
         if (spot_request := self.get_active_spot_fleet_request()):
@@ -273,7 +273,7 @@ class EC2:
                 "IamFleetRole": f"arn:aws:iam::{self.get_account_id()}:role/{self.__spot_fleet_role}",
                 "AllocationStrategy": "priceCapacityOptimized",
                 "TargetCapacity": 1,
-                "SpotPrice": "0.07",
+                "SpotPrice": str(max_price),
                 "TerminateInstancesWithExpiration": True,
                 "LaunchSpecifications": [],
                 "Type": "maintain",
