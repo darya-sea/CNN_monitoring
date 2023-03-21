@@ -82,10 +82,10 @@ class Visualization:
             image = cv2.imread(result[0])
             axes = figure.add_subplot(images_count, 1, count)    
 
-            for bbox in result[1]:
-                x, y, w, h = bbox["bbox"]
+            for data in result[1]:
+                x, y, w, h = data["bbox"]
 
-                plant_type = unidecode.unidecode(plant_types[str(bbox["plant_type"])])
+                plant_type = unidecode.unidecode(plant_types[str(data["max_index"])])
                 cv2.putText(image, plant_type, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 

@@ -39,35 +39,23 @@ class PrepareData:
 
         return images
 
-    def make_annotations(self, csv_file, output_image):
-        plant_name = os.path.basename(os.path.dirname(output_image))
-        relative_image_path = os.path.join(plant_name, os.path.basename(output_image))
+    def make_cropped_images(self, input_image, output_image):
+        images_count = 0
 
-        if os.path.exists(output_image):
-            image = cv2.imread(output_image)
-            (image_h, image_w) = image.shape[:2]
-            #orignal_image = image.copy()
+        image = cv2.imread(input_image)
+        image = self.remove_background(image)
 
-            image = self.remove_background(image)
-            cv2.imwrite(output_image, image)
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        threshold = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
+            (x, y, w, h) = cv2.boundingRect(contour)
+            if (w > 30 or h > 30) and (w < 224 and h < 224):
+                cv2.imwrite(
+                    output_image.replace(".tif", f"_{images_count}.tif"),
+                    image[y:y+h, x:x+w]
+                )
+                images_count+=1
 
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            threshold = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-
-            with open(csv_file, "a") as _file:
-                for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
-                    (x, y, w, h) = cv2.boundingRect(contour)
-                    if w > 30 or h > 30:
-                        x = float(x) / image_w
-                        y = float(y) / image_h
-                        w = float(w) / image_w
-                        h = float(h) / image_h
-
-                        #cv2.rectangle(orignal_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        _file.write(f"{relative_image_path},{x},{y},{w},{h},{plant_name}\n")
-                        break
-            
-            #cv2.imwrite(output_image, orignal_image)
 
     def prepare_images(self):
         if self.__input_folder == self.__output_folder:
@@ -110,28 +98,34 @@ class PrepareData:
             train_images_count = len(train_images)
             validation_images_count = len(validation_images)
 
-            print(f"""
-				Data for '{plant_name}'
-				Images: {images_count}
-				Training: {train_images_count}
-				Validation: {validation_images_count}
-			""")
+            print(
+                f"Data for '{plant_name}':\n",
+				f"Images: {images_count}\n",
+				f"Training: {train_images_count}\n",
+				f"Validation: {validation_images_count}\n"
+			)
 
             # Copy-paste images
             for image_path in train_images:
                 output_image = os.path.join(train_folder, os.path.basename(image_path))
 
                 if os.path.exists(output_image):
-                    output_image = os.path.join(train_folder, f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}")
+                    output_image = os.path.join(
+                        train_folder,
+                        f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
+                    )
 
-                shutil.copy(image_path, output_image)
-                self.make_annotations(train_annotations, output_image)
+                #shutil.copy(image_path, output_image)
+                self.make_cropped_images(image_path, output_image)
 
             for image_path in validation_images:
                 output_image = os.path.join(validation_folder, os.path.basename(image_path))
 
                 if os.path.exists(output_image):
-                    output_image = os.path.join(validation_folder, f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}")
+                    output_image = os.path.join(
+                        validation_folder,
+                        f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
+                    )
 
-                shutil.copy(image_path, output_image)
-                self.make_annotations(validation_annotations, output_image)
+                #shutil.copy(image_path, output_image)
+                self.make_cropped_images(image_path, output_image)

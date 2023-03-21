@@ -75,15 +75,15 @@ class Prediction:
 
         for bbox in self.get_bonding_boxes(image):
             image = cv2.resize(bbox["image"], (224, 224)).reshape(1, 224, 224, 3)
-            (box_preds, label_preds) = model.predict(image)
+            prediction = model.predict(image)[0]
     
-            max_prob_index = numpy.argmax(label_preds[0])
-            probability = label_preds[0][max_prob_index]*100
+            max_prob_index = numpy.argmax(prediction)
+            probability = prediction[max_prob_index]*100
 
             if probability > 90:
                 predictions.append({
-                    "label_preds": label_preds,
-                    "plant_type": max_prob_index,
+                    "probability": probability,
+                    "max_index": max_prob_index,
                     "bbox": bbox["bbox"]
                 })
 

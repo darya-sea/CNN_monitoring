@@ -47,11 +47,8 @@ def train():
     
     history_path = os.path.join(config.DATA_FOLDER, "output")
 
-    train_annotations = os.path.join(config.DATA_FOLDER, "train_annotations.csv")
-    validation_annotations = os.path.join(config.DATA_FOLDER, "validation_annotations.csv")
-
-    train_generator = training.get_data_flow_generator(train_annotations, "train")
-    validation_generator = training.get_data_flow_generator(validation_annotations, "validation")
+    train_generator = training.get_data_generator("train")
+    validation_generator = training.get_data_generator("validation")
 
     if train_generator and validation_generator:
         history = training.train(
