@@ -76,21 +76,17 @@ def clean_up():
     s3 = S3()
 
     ec2.cancel_spot_fleet_request()
-    s3.delete_bucket(config.S3_BUCKET)
+    #s3.delete_bucket(config.S3_BUCKET)
     ec2.delete_volume()
-
-def prepare_spot():
-    ec2 = EC2()
-    ec2.create_volume()
-    ec2.create_instance_profile()
-    ec2.create_launch_template()
-    ec2.create_spot_fleet_role()
 
 def request_spot():
     ec2 = EC2()
     ssm = SSM()
 
     ec2.create_volume()
+    ec2.create_instance_profile()
+    ec2.create_launch_template()
+    ec2.create_spot_fleet_role()
     ec2.request_spot_fleet(config.EC2_INSTANCE_TYPES)
 
     while True:
@@ -98,42 +94,48 @@ def request_spot():
             if spot_request["ActivityStatus"] == "fulfilled":
                 for instance in ec2.get_spot_fleet_instances(spot_request["SpotFleetRequestId"]):
                     time.sleep(3)
+
                     device_name = ec2.attach_volume(instance["InstanceId"])[2]
 
                     output = ssm.execute_command(
                         instance["InstanceId"],
                         [
-                            f"mount {device_name} /mnt",
-                            f"mkfs.ext4 {device_name}",
-                            f"mount {device_name} /mnt",
-                            "yum install opencv-python -y",
-                            "pip3 install virtualenv",
-                            "cd /mnt",
-                            "git clone https://github.com/darya-sea/CNN_monitoring.git",
-                            "sh /mnt/CNN_monitoring/application/install.sh",
-                            f"aws s3 sync s3://{config.S3_BUCKET}/DATA .",
-                            "sh /mnt/CNN_monitoring/application/train.sh"
+                            f"mount {device_name} /mnt &> /var/log/train.log",
+                            f"mkfs.ext4 {device_name} &>> /var/log/train.log",
+                            f"mount {device_name} /mnt &>> /var/log/train.log",
+                            "cd /mnt >> /var/log/train.log &>> /var/log/train.log",
+                            "git clone https://github.com/darya-sea/CNN_monitoring.git &>> /var/log/train.log",
+                            "cd /mnt/CNN_monitoring &>> /var/log/train.log",
+                            f"aws s3 sync s3://{config.S3_BUCKET}/DATA DATA &>> /var/log/train.log",
+                            "yum install opencv-python -y &>> /var/log/train.log",
+                            "pip3 install virtualenv &>> /var/log/train.log",
+                            "git checkout crop &>> /var/log/train.log",
+                            "sh /mnt/CNN_monitoring/application/install.sh &>> /var/log/train.log",
+                            "sh /mnt/CNN_monitoring/application/train.sh &>> /var/log/train.log"
                         ]
                     )
-                    with open(".commandid", "w") as _file:
-                        _file.write(f"{instance['InstanceId']}:{output['CommandId']}")
-
-                    print("------- Success command -------\n",
-                        f"{output['StandardOutputContent']}"
+                    output = ssm.execute_command(
+                        instance["InstanceId"], 
+                        ["cat /var/log/train.log"]
                     )
-
-                    print(
-                        "------- Error command ------- \n",
-                        f"{output['StandardErrorContent']}",
-                        "--------------------------------"
-                    )
+                    print(output["StandardOutputContent"])
                 break
             else:
                 print("[INFO] Waiting for request to be fulfilled.")
         time.sleep(3)
 
-    ec2.cancel_spot_fleet_request()
-    ec2.delete_volume()
+    # ec2.cancel_spot_fleet_request()
+    # ec2.delete_volume()
+
+def spot_status():
+    ssm = SSM()
+
+    for commands in ssm.list_commands()["Commands"]:
+        output = ssm.execute_command(
+            commands["InstanceIds"][0], 
+            ["cat /var/log/train.log"]
+        )
+        print(output["StandardOutputContent"])
 
 def show_history():
     from visualization.visualization import Visualization
@@ -146,7 +148,7 @@ def show_history():
 def help(script_name):
     print(
     f"""
-        usage: {script_name} <prepare|train|predict|sync|prepare_spot|request_spot|clean_up>
+        usage: {script_name} <prepare|train|predict|sync|request_spot|spot_status|clean_up>
 
         preapre example: 
           python {script_name} prepare
@@ -157,10 +159,10 @@ def help(script_name):
         sync example: 
           python {script_name} sync
           python {script_name} sync CNN
-        prepare_spot example: 
-          python {script_name} prepare_spot
         request_spot example: 
           python {script_name} request_spot
+        spot_status example: 
+          python {script_name} spot_status
         clean_up example: 
           python {script_name} clean_up
         show_history example: 
@@ -184,10 +186,10 @@ if __name__ == "__main__":
                     print(f"usage: {sys.argv[0]} predict <image_path>")
             case "sync":
                 sync_s3(sys.argv[2] if len(sys.argv) > 2 else None)
-            case "prepare_spot":
-                prepare_spot()
             case "request_spot":
                 request_spot()
+            case "spot_status":
+                spot_status()
             case "clean_up":
                 clean_up()
             case "show_history":
