@@ -78,11 +78,11 @@ class Train:
         vgg_final_model = Model(vgg_model.input, vgg_x)
         vgg_final_model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["acc"])
 
-        filepath = os.path.join(self.__output_folder , "vgg-model-{epoch:02d}-acc-{class_label_acc:.2f}.hdf5")
+        filepath = os.path.join(self.__output_folder , "vgg-model-{epoch:02d}-acc-{val_acc:.2f}.hdf5")
 
         backup_restore = tensorflow.keras.callbacks.BackupAndRestore(backup_dir=self.__backup_folder)
         checkpoint = tensorflow.keras.callbacks.ModelCheckpoint(
-            filepath, monitor="class_label_acc", verbose=1, save_best_only=True, mode="max")
+            filepath, monitor="val_acc", verbose=1, save_best_only=True, mode="max")
         early_stopping = tensorflow.keras.callbacks.EarlyStopping(monitor="loss", patience=10)
 
         history = vgg_final_model.fit(
