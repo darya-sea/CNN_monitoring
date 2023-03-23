@@ -10,14 +10,15 @@ class EC2:
         self.__instance_role = "CNNTrainInstanceRole"
         self.__spot_fleet_role = "CNNTrainSpotFleetRole"
         self.__volume_name = "CNNTrainInstanceVolume"
-        self.__volume_size = 100
+        self.__volume_size = 30
         self.__volume_device = "/dev/xvdf"
         self.__ami_id = "ami-0e8ac16acd5e85cc4"
 
         self.__instance_role_policies = [
             "AmazonEC2FullAccess",
             "AmazonS3FullAccess",
-            "AmazonSSMManagedInstanceCore"
+            "AmazonSSMManagedInstanceCore",
+            "CloudWatchLogsFullAccess"
         ]
 
         self.__session = boto3._get_default_session()
@@ -100,6 +101,40 @@ class EC2:
         except client.exceptions.LimitExceededException:
             print(f"[INFO] Role {self.__instance_role} already added to InstanceProfile {self.__instance_profile}.")
         return self.__instance_profile
+    
+    def delete_instance_profile(self):
+        client = self.__session.client("iam")
+
+        try:
+            client.remove_role_from_instance_profile(
+                InstanceProfileName=self.__instance_profile,
+                RoleName=self.__instance_role
+            )
+        except client.exceptions.NoSuchEntityException:
+            pass
+
+        try:
+            client.delete_instance_profile(InstanceProfileName=self.__instance_profile)
+        except client.exceptions.NoSuchEntityException:
+            pass
+
+        for policy in self.__instance_role_policies:
+            try:
+                client.detach_role_policy(
+                    RoleName=self.__instance_role,
+                    PolicyArn=f"arn:aws:iam::aws:policy/{policy}"
+                )
+            except client.exceptions.NoSuchEntityException:
+                pass
+
+        try:
+            client.delete_role(RoleName=self.__instance_role)
+        except client.exceptions.NoSuchEntityException:
+            pass
+
+        print(f"[INFO] Role {self.__instance_role} removed from InstanceProfile {self.__instance_profile}.")
+        print(f"[INFO] InstanceProfile {self.__instance_profile} deleted.")
+        print(f"[INFO] Role {self.__instance_role} deleted.")
 
     def create_launch_template(self):
         client = self.__session.client("ec2")
@@ -123,6 +158,16 @@ class EC2:
                 print(f"[INFO] LaunchTemplate {self.__launch_template} already exists.")
 
         return self.__launch_template
+    
+    def delete_launch_templat(self):
+        client = self.__session.client("ec2")
+
+        try:
+            client.delete_launch_template(LaunchTemplateName=self.__launch_template)
+        except client.exceptions.ClientError:
+            pass
+
+        print(f"[INFO] LaunchTemplate {self.__launch_template} deleted.")
 
     def create_volume(self):
         client = self.__session.client("ec2")

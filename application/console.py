@@ -4,6 +4,7 @@ import logging
 import warnings
 import os
 import time
+import subprocess
 
 from pprint import pprint
 from aws.s3 import S3
@@ -77,7 +78,9 @@ def clean_up():
 
     ec2.cancel_spot_fleet_request()
     #s3.delete_bucket(config.S3_BUCKET)
-    # ec2.delete_volume()
+    ec2.delete_volume()
+    ec2.delete_launch_templat()
+    ec2.delete_instance_profile()
 
 def request_spot():
     ec2 = EC2()
@@ -96,29 +99,38 @@ def request_spot():
                     time.sleep(3)
 
                     device_name = ec2.attach_volume(instance["InstanceId"])[2]
+                    output = ssm.execute_command(
+                        instance["InstanceId"],
+                        [
+                            f"mount {device_name} /mnt",
+                            f"mkfs.ext4 {device_name}",
+                            f"mount {device_name} /mnt",
+                            "yum install opencv-python -y",
+                            "pip3 install virtualenv"
+                        ]
+                    )
+                    if output["StandardErrorContent"]:
+                        print(output["StandardErrorContent"])
+                    if output["StandardOutputContent"]:
+                        print(output["StandardOutputContent"])
 
                     output = ssm.execute_command(
                         instance["InstanceId"],
                         [
-                            f"mount {device_name} /mnt > /var/log/train.log 2>&1",
-                            f"mkfs.ext4 {device_name} >> /var/log/train.log 2>&1",
-                            f"mount {device_name} /mnt >> /var/log/train.log 2>&1",
-                            "cd /mnt >> /var/log/train.log >> /var/log/train.log 2>&1",
-                            "git clone https://github.com/darya-sea/CNN_monitoring.git >> /var/log/train.log 2>&1",
-                            "cd /mnt/CNN_monitoring >> /var/log/train.log 2>&1",
+                            "git clone https://github.com/darya-sea/CNN_monitoring.git",
+                            "cd /mnt/CNN_monitoring",
+                            "git checkout crop",
+                            "sh /mnt/CNN_monitoring/application/install.sh",
+                            "sh /mnt/CNN_monitoring/application/send_logs.sh &",
                             f"aws s3 sync s3://{config.S3_BUCKET}/DATA DATA >> /var/log/train.log 2>&1",
-                            "yum install opencv-python -y >> /var/log/train.log 2>&1",
-                            "pip3 install virtualenv >> /var/log/train.log 2>&1",
-                            "git checkout crop >> /var/log/train.log 2>&1",
-                            "sh /mnt/CNN_monitoring/application/install.sh >> /var/log/train.log 2>&1",
-                            "sh /mnt/CNN_monitoring/application/train.sh >> /var/log/train.log 2>&1"
+                            "sh /mnt/CNN_monitoring/application/train.sh >> /var/log/train.log 2>&1",
+                            "echo Finished >> /var/log/train.log 2>&1"
                         ]
                     )
-                    output = ssm.execute_command(
-                        instance["InstanceId"], 
-                        ["cat /var/log/train.log"]
-                    )
-                    print(output["StandardOutputContent"])
+                    if output["StandardErrorContent"]:
+                        print(output["StandardErrorContent"])
+                    if output["StandardOutputContent"]:
+                        print(output["StandardOutputContent"])
                 break
             else:
                 print("[INFO] Waiting for request to be fulfilled.")
@@ -127,31 +139,48 @@ def request_spot():
     # ec2.cancel_spot_fleet_request()
     # ec2.delete_volume()
 
-def spot_status():
-    ec2 = EC2()
+def get_spot_logs():
+   ssm = SSM()
+   while True:
+    for log in ssm.get_logs():
+        message = log["message"].strip()
+        print(message)
+
+        if "Finished" in message:
+            return
+    time.sleep(5)
+
+def send_spot_logs(log_path):
     ssm = SSM()
 
-    if (spot_request := ec2.get_active_spot_fleet_request()):
-        if spot_request["ActivityStatus"] == "fulfilled":
-            for instance in ec2.get_spot_fleet_instances(spot_request["SpotFleetRequestId"]):
-                output = ssm.execute_command(
-                    instance["InstanceId"], 
-                    ["tail -n 20 /var/log/train.log"]
-                )
-                print(output["StandardOutputContent"].replace("--output truncated--", ""))
+    if not os.path.exists(log_path):
+        print(f"[ERROR] Log file {log_path} not found.")
+        return
 
-def show_history():
+    process = subprocess.Popen(
+        ["tail", "-f", log_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+
+    while True:
+        ssm.send_log(process.stdout.readline())
+
+def train_history():
     from visualization.visualization import Visualization
 
     visualization = Visualization()
     visualization.show_from_json(
-        os.path.join(config.DATA_FOLDER, "output/model_history.json")
+        os.path.join(
+            config.DATA_FOLDER,
+            "output/model_history.json"
+        )
     )
 
 def help(script_name):
     print(
     f"""
-        usage: {script_name} <prepare|train|predict|sync|request_spot|spot_status|clean_up>
+        usage: {script_name} <prepare|train|predict|sync|request_spot|get_spot_logs|clean_up|train_history|send_spot_logs>
 
         preapre example: 
           python {script_name} prepare
@@ -164,12 +193,14 @@ def help(script_name):
           python {script_name} sync CNN
         request_spot example: 
           python {script_name} request_spot
-        spot_status example: 
-          python {script_name} spot_status
+        get_spot_logs example: 
+          python {script_name} spot_logs
         clean_up example: 
           python {script_name} clean_up
-        show_history example: 
-          python {script_name} show_history
+        train_history example: 
+          python {script_name} train_history
+        send_spot_logs example: 
+          python {script_name} tail_logs
     """
     )
 
@@ -191,12 +222,13 @@ if __name__ == "__main__":
                 sync_s3(sys.argv[2] if len(sys.argv) > 2 else None)
             case "request_spot":
                 request_spot()
-            case "spot_status":
-                spot_status()
+            case "get_spot_logs":
+                get_spot_logs()
+            case "send_spot_logs":
+                send_spot_logs("/var/log/log_file.txt")
             case "clean_up":
                 clean_up()
-            case "show_history":
-                show_history()
-                
+            case "train_history":
+                train_history()
     else:
         help(sys.argv[0])
