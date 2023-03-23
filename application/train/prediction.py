@@ -11,7 +11,7 @@ from keras.preprocessing.image import image_utils as keras_image_utils
 class Prediction:
     def __init__(self):
         self.__supported_formats = (".tiff", ".tif")
-        self.__max_images = 5
+        self.__max_images = 4
 
     def get_best_model(self, models_path):
         if not os.path.exists(models_path):
@@ -61,7 +61,7 @@ class Prediction:
 
         for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
             (x, y, w, h) = cv2.boundingRect(contour)
-            if w > 30 or h > 30:
+            if ((w > 30 and h > 15) or (w > 15 and h > 30)) and (w < 224 and h < 224):
                 bonding_boxes.append({
                     "image": image[y:y+h, x:x+w],
                     "bbox": (x, y, w, h)
@@ -81,7 +81,7 @@ class Prediction:
             max_prob_index = numpy.argmax(prediction)
             probability = prediction[max_prob_index]*100
 
-            if probability == 100:
+            if probability > 90:
                 predictions.append({
                     "probability": probability,
                     "max_index": max_prob_index,

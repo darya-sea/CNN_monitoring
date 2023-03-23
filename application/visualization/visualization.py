@@ -63,33 +63,50 @@ class Visualization:
             dataframe.to_csv(_file)
             
     def show_predicted_images(self, results, plant_types):
-        results = results[:5]
+        results = results[:4]
         images_count = len(results)
         count = 1
 
-        images_in_row = 3
-        images_in_column = 15
+        images_in_row = 2
+        images_in_column = 10
 
         figure = matplotlib.pyplot.figure(figsize=(images_in_column, images_count*images_in_row))
-        figure.subplots_adjust(top=0.95, bottom=0.01, left=0.01, right=0.99, hspace=0.11, wspace=0.03)
+        figure.subplots_adjust(top=0.9, bottom=0.01, left=0.01, right=0.99, hspace=0.25, wspace=0.03)
 
         for result in results:
             image = cv2.imread(result[0])
             axes = figure.add_subplot(
-                images_count, 
+                round(images_count/4) + 1 if images_count > 1 else 1, 
                 2 if images_count > 1 else 1, 
                 count
-            )    
+            )
+
+            plants_on_image = {}
+            plants_on_image_count = 0
 
             for data in result[1]:
                 x, y, w, h = data["bbox"]
 
                 plant_type = unidecode.unidecode(plant_types[str(data["max_index"])])
-                cv2.putText(image, plant_type, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(image, plant_type, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
+                cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 1)
 
-            axes.axis('off')
-            axes.set_title(f"{os.path.basename(result[0])}", fontsize=9)
+                if plant_type in plants_on_image:
+                    plants_on_image[plant_type] += 1
+                else:
+                    plants_on_image[plant_type] = 1
+
+                plants_on_image_count += 1
+
+            detected_plants = "\n".join(
+                {
+                    f"{plant}: {round(plants_on_image[plant]*100/plants_on_image_count)}%" 
+                    for plant in plants_on_image
+                }
+            )
+    
+            axes.axis("off")
+            axes.set_title(f"Image: {os.path.basename(result[0])}\n{detected_plants}.", fontsize=9)
             axes.imshow(image, aspect="auto")
             count += 1
 
