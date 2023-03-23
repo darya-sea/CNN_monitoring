@@ -10,7 +10,7 @@ class Train:
     def __init__(self, data_folder):
         self.__data_folder = data_folder
         self.__batch_size = 16
-        self.__taget_size = (224, 224)
+        self.__taget_size = (150, 150)
         self.__fix_gpu()
 
         self.__output_folder = os.path.join(self.__data_folder, "output/models")
