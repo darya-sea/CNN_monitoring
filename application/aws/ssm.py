@@ -7,7 +7,7 @@ class SSM:
         self.__session = boto3._get_default_session()
         self.__log_group_name = "CNNTrainLogs"
         self.__log_stream_name = "CNNTrainLogsStream"
-    
+
     def execute_command(self, instance_id, commands):
         client = self.__session.client("ssm")
         response = client.send_command(

@@ -70,3 +70,11 @@ EC2_INSTANCE_TYPES = [
         "InstanceType": "c5.xlarge"
     }
 ]
+
+# EC2_INSTANCE_TYPES = [
+#     {
+#         "InstanceType": "g4dn.xlarge"
+#     }
+# ]
+  
+# #g4dn.2xlarge

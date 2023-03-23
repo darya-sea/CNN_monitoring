@@ -11,6 +11,7 @@ from keras.preprocessing.image import image_utils as keras_image_utils
 class Prediction:
     def __init__(self):
         self.__supported_formats = (".tiff", ".tif")
+        self.__max_images = 5
 
     def get_best_model(self, models_path):
         if not os.path.exists(models_path):
@@ -80,7 +81,7 @@ class Prediction:
             max_prob_index = numpy.argmax(prediction)
             probability = prediction[max_prob_index]*100
 
-            if probability > 90:
+            if probability == 100:
                 predictions.append({
                     "probability": probability,
                     "max_index": max_prob_index,
@@ -91,14 +92,15 @@ class Prediction:
 
     def predict(self, path, model_file):
         results = []
-
         model = keras.models.load_model(model_file)
 
         if os.path.isdir(path):
-            print(f"Runing prediction on folder {path}")
+            print(f"Runing prediction on folder {path}. Max images {self.__max_images}.")
             for image_path in os.scandir(path):
                 if image_path.path.endswith(self.__supported_formats):
                     results.append([image_path.path, self._predict(model, image_path.path)])
+                if len(results) >= self.__max_images:
+                    break
         else:
             if path.endswith(self.__supported_formats):
                 print(f"Runing prediction on file {path}")

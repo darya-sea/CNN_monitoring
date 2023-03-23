@@ -57,7 +57,7 @@ def train():
             validation_generator,
             config.TRAINING_EPOCHS
         )
-        visualization.plot_accuracy(history, history_path)
+        visualization.save_traning_plot(history, history_path)
         visualization.save_history(history, history_path)
 
 def sync_s3(local_folder=None):
@@ -78,7 +78,7 @@ def clean_up():
 
     ec2.cancel_spot_fleet_request()
     #s3.delete_bucket(config.S3_BUCKET)
-    ec2.delete_volume()
+    #ec2.delete_volume()
     ec2.delete_launch_templat()
     ec2.delete_instance_profile()
 
@@ -117,14 +117,15 @@ def request_spot():
                     output = ssm.execute_command(
                         instance["InstanceId"],
                         [
+                            "cd /mnt",
                             "git clone https://github.com/darya-sea/CNN_monitoring.git",
                             "cd /mnt/CNN_monitoring",
+                            "touch /var/log/train.log",
                             "git checkout crop",
-                            "sh /mnt/CNN_monitoring/application/install.sh",
-                            "sh /mnt/CNN_monitoring/application/send_logs.sh &",
-                            f"aws s3 sync s3://{config.S3_BUCKET}/DATA DATA >> /var/log/train.log 2>&1",
-                            "sh /mnt/CNN_monitoring/application/train.sh >> /var/log/train.log 2>&1",
-                            "echo Finished >> /var/log/train.log 2>&1"
+                            "sh /mnt/CNN_monitoring/application/scripts/install.sh > /var/log/train.log 2>&1",
+                            f"AWS_REGION={ec2.get_session().region_name} sh /mnt/CNN_monitoring/application/scripts/send_logs.sh &",
+                            f"aws s3 sync s3://{config.S3_BUCKET}/DATA /mnt/CNN_monitoring/DATA >> /var/log/train.log 2>&1",
+                            "sh /mnt/CNN_monitoring/application/scripts/train.sh >> /var/log/train.log 2>&1"
                         ]
                     )
                     if output["StandardErrorContent"]:
@@ -145,9 +146,6 @@ def get_spot_logs():
     for log in ssm.get_logs():
         message = log["message"].strip()
         print(message)
-
-        if "Finished" in message:
-            return
     time.sleep(5)
 
 def send_spot_logs(log_path):
@@ -170,7 +168,7 @@ def train_history():
     from visualization.visualization import Visualization
 
     visualization = Visualization()
-    visualization.show_from_json(
+    visualization.show_traning_plot(
         os.path.join(
             config.DATA_FOLDER,
             "output/model_history.json"
@@ -225,7 +223,7 @@ if __name__ == "__main__":
             case "get_spot_logs":
                 get_spot_logs()
             case "send_spot_logs":
-                send_spot_logs("/var/log/log_file.txt")
+                send_spot_logs("/var/log/train.log")
             case "clean_up":
                 clean_up()
             case "train_history":

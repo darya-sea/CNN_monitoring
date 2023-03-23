@@ -25,7 +25,7 @@ class Visualization:
 
             plots = [
                 {
-                    "filter": ("loss", "acc"),
+                    "filter": ("loss", "acc", "val_loss", "val_acc"),
                     "title": "Training and Validation Accuracy",
                     "figure_path": "model_history.png"
                 }
@@ -63,7 +63,7 @@ class Visualization:
             dataframe.to_csv(_file)
             
     def show_predicted_images(self, results, plant_types):
-        results = results[:12]
+        results = results[:5]
         images_count = len(results)
         count = 1
 

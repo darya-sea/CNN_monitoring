@@ -259,6 +259,9 @@ class EC2:
         client = self.__session.client("sts")
         return client.get_caller_identity()["Account"]
 
+    def get_session(self):
+        return self.__session
+
     def get_active_spot_fleet_request(self):
         iam_fleet_role = f"arn:aws:iam::{self.get_account_id()}:role/{self.__spot_fleet_role}"
         client = self.__session.client("ec2")
