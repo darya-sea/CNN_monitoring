@@ -289,16 +289,14 @@ class EC2:
 
             print(f"[INFO] Terminating instances {[instance['InstanceId'] for instance in fleet_instances]}.")
 
-            while True:
-                for instance in fleet_instances:
-                    instance_statuses = client.describe_instance_status(InstanceIds=[instance["InstanceId"]])
-                    if instance_statuses["InstanceStatuses"]:
-                        for status in instance_statuses["InstanceStatuses"]:
-                            if status["InstanceState"]["Name"] == "terminated":
-                                return spot_request
-                    else:
-                        return spot_request
-                time.sleep(2)
+            for instance in fleet_instances:
+                instance_statuses = client.describe_instance_status(InstanceIds=[instance["InstanceId"]])
+                if instance_statuses["InstanceStatuses"]:
+                    for status in instance_statuses["InstanceStatuses"]:
+                        if status["InstanceState"]["Name"] == "terminated":
+                            return spot_request
+                else:
+                    return spot_request
         else:
             print(f"[INFO] Not found active spot fleet requests.")
         return spot_request
