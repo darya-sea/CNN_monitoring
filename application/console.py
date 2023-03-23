@@ -82,7 +82,7 @@ def clean_up():
     #ec2.delete_volume()
     ec2.delete_launch_templat()
     ec2.delete_instance_profile()
-    #ssm.delete_logs()
+    ssm.delete_logs()
 
 def request_spot():
     ec2 = EC2()
