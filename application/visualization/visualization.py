@@ -75,7 +75,11 @@ class Visualization:
 
         for result in results:
             image = cv2.imread(result[0])
-            axes = figure.add_subplot(images_count, 1, count)    
+            axes = figure.add_subplot(
+                images_count, 
+                2 if images_count > 1 else 1, 
+                count
+            )    
 
             for data in result[1]:
                 x, y, w, h = data["bbox"]

@@ -75,12 +75,14 @@ def sync_s3(local_folder=None):
 def clean_up():
     ec2 = EC2()
     s3 = S3()
+    ssm = SSM()
 
     ec2.cancel_spot_fleet_request()
     #s3.delete_bucket(config.S3_BUCKET)
     #ec2.delete_volume()
     ec2.delete_launch_templat()
     ec2.delete_instance_profile()
+    #ssm.delete_logs()
 
 def request_spot():
     ec2 = EC2()
@@ -123,7 +125,7 @@ def request_spot():
                             "touch /var/log/train.log",
                             "git checkout crop",
                             "sh /mnt/CNN_monitoring/application/scripts/install.sh > /var/log/train.log 2>&1",
-                            f"AWS_REGION={ec2.get_session().region_name} sh /mnt/CNN_monitoring/application/scripts/send_logs.sh &",
+                            f"AWS_DEFAULT_REGION={ec2.get_session().region_name} sh /mnt/CNN_monitoring/application/scripts/send_logs.sh &",
                             f"aws s3 sync s3://{config.S3_BUCKET}/DATA /mnt/CNN_monitoring/DATA >> /var/log/train.log 2>&1",
                             "sh /mnt/CNN_monitoring/application/scripts/train.sh >> /var/log/train.log 2>&1"
                         ]

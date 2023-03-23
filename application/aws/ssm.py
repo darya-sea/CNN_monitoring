@@ -85,4 +85,13 @@ class SSM:
             return response["events"]
         except client.exceptions.ResourceNotFoundException:
             return []
+    
+    def delete_logs(self):
+        client = self.__session.client("logs")
 
+        try:
+            client.delete_log_group(logGroupName=self.__log_group_name)
+        except client.exceptions.ResourceNotFoundException:
+            pass
+
+        print(f"[INFO] Log group {self.__log_group_name} deleted.")
