@@ -7,7 +7,7 @@ import matplotlib.pyplot
 import unidecode
 
 class Visualization:
-    def plot_accuracy(self, history, path):
+    def save_traning_plot(self, history, path):
         os.makedirs(path, exist_ok=True)
 
         dataframe = pandas.DataFrame(history.history)
@@ -19,20 +19,15 @@ class Visualization:
         matplotlib.pyplot.savefig(f"{path}/model_history.png")
         matplotlib.pyplot.close()
     
-    def show_from_json(self, json_file):
+    def show_traning_plot(self, json_file):
         if os.path.exists(json_file):
             dataframe = pandas.read_json(json_file)
 
             plots = [
                 {
-                    "filter": ("loss", "class_label_loss", "class_label_acc"),
-                    "title": "Training and Validation Accuracy (labels)",
-                    "figure_path": "model_history_labels.png"
-                },
-                {
-                    "filter": ("bounding_box_loss", "bounding_box_acc"),
-                    "title": "Training and Validation Accuracy (boxes)",
-                    "figure_path": "model_history_boxes.png"
+                    "filter": ("loss", "acc"),
+                    "title": "Training and Validation Accuracy",
+                    "figure_path": "model_history.png"
                 }
             ]
 
