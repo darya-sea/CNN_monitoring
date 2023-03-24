@@ -123,7 +123,6 @@ def request_spot():
                             "git clone https://github.com/darya-sea/CNN_monitoring.git",
                             "cd /mnt/CNN_monitoring",
                             "touch /var/log/train.log",
-                            "git checkout crop",
                             "sh /mnt/CNN_monitoring/application/scripts/install.sh > /var/log/train.log 2>&1",
                             f"AWS_DEFAULT_REGION={ec2.get_session().region_name} sh /mnt/CNN_monitoring/application/scripts/send_logs.sh &",
                             f"aws s3 sync s3://{config.S3_BUCKET}/DATA /mnt/CNN_monitoring/DATA >> /var/log/train.log 2>&1",
