@@ -13,7 +13,6 @@ import PySimpleGUI as gui
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from prepare.data import PrepareData
-
 from train.train import Train
 from train.prediction import Prediction
 from visualization.visualization import Visualization
@@ -112,18 +111,18 @@ def draw_prediction(results: list, plant_types_file: str):
     if images_count == 0:
         return
 
-    images_in_row = 2
-    images_in_column = 10
+    images_in_row = 7
+    images_in_column = 7
 
     count = 1
 
     layout = [
-        [gui.Canvas(key='-CANVAS-')]
+        [gui.Canvas(key="-CANVAS-")]
     ]
     sub_window = gui.Window(
-        'Prediction result',
+        "Prediction result",
         layout,
-        element_justification='center',
+        element_justification="center",
         finalize=True,
         resizable=True,
         font=("Arial", 12)
@@ -132,7 +131,7 @@ def draw_prediction(results: list, plant_types_file: str):
     plant_types = Prediction().load_classes(plant_types_file)
 
     figure = matplotlib.pyplot.figure(figsize=(images_in_column, images_in_row*images_count))
-    figure.subplots_adjust(top=0.9, bottom=0.01, left=0.01, right=0.99, hspace=0.25, wspace=0.03)
+    figure.subplots_adjust(top=0.89, bottom=0.01, left=0.01, right=0.99, hspace=0.25, wspace=0.03)
 
     for result in results:
         image = cv2.imread(result[0])
@@ -167,14 +166,14 @@ def draw_prediction(results: list, plant_types_file: str):
         )
 
         axes.axis("off")
-        axes.set_title(f"Image: {os.path.basename(result[0])}\n{detected_plants}.", fontsize=9)
+        axes.set_title(f"Image: {os.path.basename(result[0])}\n{detected_plants}.", fontsize=5)
         axes.imshow(image, aspect="auto")
         count += 1
 
     figure_canvas_agg = FigureCanvasTkAgg(
-        figure, sub_window['-CANVAS-'].TKCanvas)
+        figure, sub_window["-CANVAS-"].TKCanvas)
     figure_canvas_agg.draw()
-    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=True)
+    figure_canvas_agg.get_tk_widget().pack(side="top", fill="both", expand=True)
 
     sub_window.read(close=True)
 

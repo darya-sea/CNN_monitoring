@@ -67,10 +67,10 @@ class Visualization:
         images_count = len(results)
         count = 1
 
-        images_in_row = 2
+        images_in_row = 3
         images_in_column = 10
 
-        figure = matplotlib.pyplot.figure(figsize=(images_in_column, images_count*images_in_row))
+        figure = matplotlib.pyplot.figure(figsize=(images_in_column, images_count + images_in_row))
         figure.subplots_adjust(top=0.9, bottom=0.01, left=0.01, right=0.99, hspace=0.25, wspace=0.03)
 
         for result in results:
