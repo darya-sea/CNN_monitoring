@@ -12,6 +12,7 @@ class Prediction:
     def __init__(self):
         self.__supported_formats = (".tiff", ".tif")
         self.__max_images = 4
+        self.__taget_size = (150, 150)
 
     def get_best_model(self, models_path):
         if not os.path.exists(models_path):
@@ -61,7 +62,7 @@ class Prediction:
 
         for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
             (x, y, w, h) = cv2.boundingRect(contour)
-            if ((w > 30 and h > 15) or (w > 15 and h > 30)) and (w < 224 and h < 224):
+            if ((w > 30 and h > 20) or (w > 20 and h > 30)) and (w < 224 and h < 224):
                 bonding_boxes.append({
                     "image": image[y:y+h, x:x+w],
                     "bbox": (x, y, w, h)
@@ -75,7 +76,11 @@ class Prediction:
         image = cv2.imread(image_path)
 
         for bbox in self.get_bonding_boxes(image):
-            image = cv2.resize(bbox["image"], (224, 224)).reshape(1, 224, 224, 3)
+            image = cv2.resize(
+                bbox["image"], 
+                self.__taget_size
+            ).reshape((1,) + self.__taget_size + (3,))
+
             prediction = model.predict(image)[0]
     
             max_prob_index = numpy.argmax(prediction)
