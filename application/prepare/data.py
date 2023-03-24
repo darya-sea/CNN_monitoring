@@ -49,7 +49,7 @@ class PrepareData:
         threshold = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
             (x, y, w, h) = cv2.boundingRect(contour)
-            if (w > 30 and h > 20) and (w < 150 and h < 150):
+            if (w > 30 and h > 30) and (w < 150 and h < 150):
                 cv2.imwrite(
                     output_image.replace(".tif", f"_{images_count}.tif"),
                     image[y:y+h, x:x+w]
