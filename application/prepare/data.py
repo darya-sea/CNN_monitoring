@@ -3,12 +3,14 @@ import os
 import numpy
 import random
 import cv2
+import json
 
 
 class PrepareData:
     def __init__(self, input_folder, output_folder):
         self.__input_folder = input_folder
         self.__output_folder = output_folder
+        self.__metadata = {}
 
     def remove_background(self, image: cv2.Mat) -> cv2.Mat:
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -42,14 +44,22 @@ class PrepareData:
     def make_cropped_images(self, input_image: str, output_image: str) -> int:
         images_count = 0
 
+        min_w = 30
+        min_h = 30
+
         image = cv2.imread(input_image)
         image = self.remove_background(image)
+        folder_name = os.path.basename(os.path.dirname(output_image))
+
+        if folder_name in self.__metadata:
+            min_w = self.__metadata[folder_name].get("min_w", min_w)
+            min_h = self.__metadata[folder_name].get("min_h", min_h)
 
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         threshold = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
             (x, y, w, h) = cv2.boundingRect(contour)
-            if (w > 30 and h > 30) and (w < 150 and h < 150):
+            if (w > min_w and h > min_h) and (w < 150 and h < 150):
                 cv2.imwrite(
                     output_image.replace(".tif", f"_{images_count}.tif"),
                     image[y:y+h, x:x+w]
@@ -64,21 +74,18 @@ class PrepareData:
                 f"[ERROR] Input and output folders are same: {self.__input_folder}. Stopped.")
             return False
 
-        train_annotations = os.path.join(self.__output_folder, "train_annotations.csv")
-        validation_annotations = os.path.join(self.__output_folder, "validation_annotations.csv")
+        metadata_file = os.path.join(self.__input_folder, "meta.json")
 
-        if os.path.exists(train_annotations):
-            os.remove(train_annotations)
-        
-        if os.path.exists(validation_annotations):
-            os.remove(validation_annotations)
+        if os.path.exists(metadata_file):
+            with open(metadata_file, "r") as _file:
+                self.__metadata = json.loads(_file.read())
 
-        for plant_name in os.listdir(self.__input_folder):
-            if not os.path.isdir(os.path.join(self.__input_folder, plant_name)):
+        for data_type_name in os.listdir(self.__input_folder):
+            if not os.path.isdir(os.path.join(self.__input_folder, data_type_name)):
                 continue
 
-            train_folder = os.path.join(self.__output_folder, "train", plant_name)
-            validation_folder = os.path.join(self.__output_folder, "validation", plant_name)
+            train_folder = os.path.join(self.__output_folder, "train", data_type_name)
+            validation_folder = os.path.join(self.__output_folder, "validation", data_type_name)
 
             shutil.rmtree(train_folder, ignore_errors=True)
             shutil.rmtree(validation_folder, ignore_errors=True)
@@ -86,7 +93,7 @@ class PrepareData:
             os.makedirs(train_folder, exist_ok=True)
             os.makedirs(validation_folder, exist_ok=True)
 
-            images = self.get_all_images(os.path.join(self.__input_folder, plant_name))
+            images = self.get_all_images(os.path.join(self.__input_folder, data_type_name))
             images_count = len(images)
 
             numpy.random.shuffle(images)
@@ -99,7 +106,7 @@ class PrepareData:
             train_images_count = len(train_images)
             validation_images_count = len(validation_images)
 
-            print(f"Preparing data for '{plant_name}'...")
+            print(f"Preparing data for '{data_type_name}'...")
 
             # Copy-paste images
             for image_path in train_images:
@@ -127,7 +134,7 @@ class PrepareData:
                 validation_images_count += self.make_cropped_images(image_path, output_image)
             
             print(
-                f"Data for '{plant_name}':\n",
+                f"Data for '{data_type_name}':\n",
                 f"Input images: {images_count}\n",
 				f"Training: {train_images_count}\n",
 				f"Validation: {validation_images_count}\n"
