@@ -62,7 +62,7 @@ class Visualization:
         with open(hist_csv_file, mode="w") as _file:
             dataframe.to_csv(_file)
             
-    def show_predicted_images(self, results: list, plant_types: dict):
+    def show_predicted_images(self, results: list, data_types: dict):
         results = results[:4]
         images_count = len(results)
         count = 1
@@ -81,32 +81,32 @@ class Visualization:
                 count
             )
 
-            plants_on_image = {}
-            plants_on_image_count = 0
+            objects_on_image = {}
+            objects_on_image_count = 0
 
             for data in result[1]:
                 x, y, w, h = data["bbox"]
 
-                plant_type = unidecode.unidecode(plant_types[str(data["max_index"])])
-                cv2.putText(image, plant_type, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
+                data_type = unidecode.unidecode(data_types[str(data["max_index"])])
+                cv2.putText(image, data_type, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
                 cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 1)
 
-                if plant_type in plants_on_image:
-                    plants_on_image[plant_type] += 1
+                if data_type in objects_on_image:
+                    objects_on_image[data_type] += 1
                 else:
-                    plants_on_image[plant_type] = 1
+                    objects_on_image[data_type] = 1
 
-                plants_on_image_count += 1
+                objects_on_image_count += 1
 
-            detected_plants = "\n".join(
+            detected_objects = "\n".join(
                 {
-                    f"{plant}: {round(plants_on_image[plant]*100/plants_on_image_count)}%" 
-                    for plant in plants_on_image
+                    f"{object}: {round(objects_on_image[object]*100/objects_on_image_count)}%" 
+                    for object in objects_on_image
                 }
             )
     
             axes.axis("off")
-            axes.set_title(f"Image: {os.path.basename(result[0])}\n{detected_plants}.", fontsize=9)
+            axes.set_title(f"Image: {os.path.basename(result[0])}\n{detected_objects}.", fontsize=9)
             axes.imshow(image, aspect="auto")
             count += 1
 

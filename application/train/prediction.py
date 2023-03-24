@@ -100,7 +100,6 @@ class Prediction:
         model = keras.models.load_model(model_file)
 
         if os.path.isdir(path):
-            print(f"Runing prediction on folder {path}. Max images {self.__max_images}.")
             for image_path in os.scandir(path):
                 if image_path.path.endswith(self.__supported_formats):
                     results.append([image_path.path, self._predict(model, image_path.path)])
@@ -108,12 +107,7 @@ class Prediction:
                     break
         else:
             if path.endswith(self.__supported_formats):
-                print(f"Runing prediction on file {path}")
                 results.append([path, self._predict(model, path)])
             else:
                 print(f"Not supported file format. Use one of {self.__supported_formats}")
         return results
-
-    def save_results(self, path: str, results: list):
-        with open(path, "w") as _file:
-            _file.write(json.dumps(results))

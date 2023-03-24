@@ -50,7 +50,7 @@ class Train:
 
             json_file = os.path.join(
                 self.__output_folder,
-                f"{data_folder_name}_plant_types.json"
+                f"{data_folder_name}_data_types.json"
             )
 
             with open(json_file, "w") as _file:
