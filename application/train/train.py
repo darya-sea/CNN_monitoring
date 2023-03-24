@@ -7,7 +7,7 @@ from keras.layers import Dense, Flatten
 
 
 class Train:
-    def __init__(self, data_folder):
+    def __init__(self, data_folder: str):
         self.__data_folder = data_folder
         self.__batch_size = 16
         self.__taget_size = (150, 150)
@@ -24,13 +24,13 @@ class Train:
         config.gpu_options.allow_growth = True
         tensorflow.compat.v1.InteractiveSession(config=config)
 
-    def __path_exists(self, folder):
+    def __path_exists(self, folder: str) -> bool:
         if not os.path.exists(folder):
             print(f"[ERROR] Data folder {folder} doesn't exist")
             return False
         return True
 
-    def get_data_generator(self, data_folder_name):
+    def get_data_generator(self, data_folder_name: str) -> any:
         data_folder = os.path.join(self.__data_folder, data_folder_name)
 
         if self.__path_exists(data_folder):
@@ -58,7 +58,7 @@ class Train:
 
             return generator
 
-    def train(self, train_generator, validation_generator, epochs):
+    def train(self, train_generator: any, validation_generator: any, epochs: int) -> any:
         vgg_model = tensorflow.keras.applications.vgg16.VGG16(
             pooling="avg",
             weights="imagenet",

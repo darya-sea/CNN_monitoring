@@ -11,7 +11,7 @@ from matplotlib import pyplot
 from multiprocessing import Pool
 
 class NDVI:
-    def get_all_images(self, folder):
+    def get_all_images(self, folder: str) -> list:
         images = []
 
         for entry in os.scandir(folder):
@@ -23,7 +23,7 @@ class NDVI:
 
         return images
 
-    def make_ndvi(self, input_folder, parallel=False):
+    def make_ndvi(self, input_folder: str, parallel: bool = False):
         if parallel:
             self.__pool_size = 10
             self.__pool = Pool(self.__pool_size)
@@ -55,14 +55,14 @@ class NDVI:
                 else:
                     NDVI.filter_v3(image_path, ndvi_image_path)
 
-    def parallel_filter(self, input_image, output_image, total_images):
+    def parallel_filter(self, input_image: str, output_image: str, total_images: int):
         if len(self.__pool_files) > self.__pool_size or self.__processed_images == total_images:
             self.__pool.starmap(NDVI.filter_v3, self.__pool_files)
             self.__pool_files = []
         self.__pool_files.append((input_image, output_image))
         self.__processed_images += 1 
 
-    def filter_v3(input_image, output_image):
+    def filter_v3(input_image: str, output_image: str):
         print(f"Applying NDVI filter on {input_image}...")
 
         with rasterio.open(input_image) as _file:
@@ -79,7 +79,7 @@ class NDVI:
         # ndvi = cv2.bitwise_not(closing)
         cv2.imwrite(output_image, cv2.applyColorMap(ndvi, cv2.COLORMAP_SUMMER))
 
-    def filter_v2(input_image, output_image):
+    def filter_v2(input_image: str, output_image: str):
         print(f"Applying NDVI filter on {input_image}...")
 
         with rasterio.open(input_image) as infrared:
@@ -106,7 +106,7 @@ class NDVI:
 
         pyplot.imsave(output_image, ndvi, cmap="RdYlGn")
 
-    def filter_v1(input_image, output_image):
+    def filter_v1(input_image: str, output_image: str):
         print(f"Applying NDVI filter on {input_image}...")
 
         def create_colormap(args):

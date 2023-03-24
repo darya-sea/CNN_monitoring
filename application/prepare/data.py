@@ -10,7 +10,7 @@ class PrepareData:
         self.__input_folder = input_folder
         self.__output_folder = output_folder
 
-    def remove_background(self, image):
+    def remove_background(self, image: cv2.Mat) -> cv2.Mat:
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         lower = numpy.array([20, 30, 40])
@@ -27,7 +27,7 @@ class PrepareData:
         bg[mask != 0] = res[mask != 0]
         return bg
 
-    def get_all_images(self, folder):
+    def get_all_images(self, folder: str) -> list:
         images = []
 
         for entry in os.scandir(folder):
@@ -39,7 +39,7 @@ class PrepareData:
 
         return images
 
-    def make_cropped_images(self, input_image, output_image):
+    def make_cropped_images(self, input_image: str, output_image: str) -> int:
         images_count = 0
 
         image = cv2.imread(input_image)
@@ -58,7 +58,7 @@ class PrepareData:
 
         return images_count
 
-    def prepare_images(self):
+    def prepare_images(self) -> bool:
         if self.__input_folder == self.__output_folder:
             print(
                 f"[ERROR] Input and output folders are same: {self.__input_folder}. Stopped.")
@@ -132,3 +132,4 @@ class PrepareData:
 				f"Training: {train_images_count}\n",
 				f"Validation: {validation_images_count}\n"
 			)
+        return True

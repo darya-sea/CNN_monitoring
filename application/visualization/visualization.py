@@ -7,7 +7,7 @@ import matplotlib.pyplot
 import unidecode
 
 class Visualization:
-    def save_traning_plot(self, history, path):
+    def save_traning_plot(self, history: any, path: str):
         os.makedirs(path, exist_ok=True)
 
         dataframe = pandas.DataFrame(history.history)
@@ -19,7 +19,7 @@ class Visualization:
         matplotlib.pyplot.savefig(f"{path}/model_history.png")
         matplotlib.pyplot.close()
     
-    def show_traning_plot(self, json_file):
+    def show_traning_plot(self, json_file: str):
         if os.path.exists(json_file):
             dataframe = pandas.read_json(json_file)
 
@@ -49,7 +49,7 @@ class Visualization:
                 matplotlib.pyplot.close()
 
 
-    def save_history(self, history, path):
+    def save_history(self, history: any, path: str):
         os.makedirs(path, exist_ok=True)
 
         dataframe = pandas.DataFrame(history.history)
@@ -62,7 +62,7 @@ class Visualization:
         with open(hist_csv_file, mode="w") as _file:
             dataframe.to_csv(_file)
             
-    def show_predicted_images(self, results, plant_types):
+    def show_predicted_images(self, results: list, plant_types: dict):
         results = results[:4]
         images_count = len(results)
         count = 1

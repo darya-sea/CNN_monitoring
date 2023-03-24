@@ -14,7 +14,7 @@ class Prediction:
         self.__max_images = 4
         self.__taget_size = (150, 150)
 
-    def get_best_model(self, models_path):
+    def get_best_model(self, models_path: str) -> str:
         if not os.path.exists(models_path):
             print(f"[ERROR] Models folder {models_path} doesn't exist.")
             return None
@@ -25,7 +25,7 @@ class Prediction:
 
         return f"{models_path}/{model_file}"
 
-    def load_classes(self, classes_file):
+    def load_classes(self, classes_file: str) -> dict:
         if not os.path.exists(classes_file):
             print(f"[ERROR] File {classes_file} doesn't exist.")
             return None
@@ -35,7 +35,7 @@ class Prediction:
 
         return classes
     
-    def remove_background(self, image):
+    def remove_background(self, image: cv2.Mat) -> cv2.Mat:
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         lower = numpy.array([20, 30, 40])
@@ -52,7 +52,7 @@ class Prediction:
         bg[mask != 0] = res[mask != 0]
         return bg
 
-    def get_bonding_boxes(self, image):
+    def get_bonding_boxes(self, image: cv2.Mat) -> list:
         bonding_boxes = []
 
         image = self.remove_background(image)
@@ -69,7 +69,7 @@ class Prediction:
                 })
         return bonding_boxes
 
-    def _predict(self, model, image_path):
+    def _predict(self, model: any, image_path: str) -> list:
         print(f"Test image: {image_path}")
         predictions = []
 
@@ -95,7 +95,7 @@ class Prediction:
 
         return predictions
 
-    def predict(self, path, model_file):
+    def predict(self, path: str, model_file: str) -> list:
         results = []
         model = keras.models.load_model(model_file)
 

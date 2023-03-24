@@ -21,7 +21,7 @@ def prepare():
     from prepare.data import PrepareData
     PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
 
-def predict(image_path):
+def predict(image_path: str):
     from train.prediction import Prediction
     from visualization.visualization import Visualization
 
@@ -60,7 +60,7 @@ def train():
         visualization.save_traning_plot(history, history_path)
         visualization.save_history(history, history_path)
 
-def sync_s3(local_folder=None):
+def sync_s3(local_folder: str = None):
     s3 = S3()
     s3.create_bucket(config.S3_BUCKET)
 
@@ -150,7 +150,7 @@ def get_spot_logs():
         print(message)
     time.sleep(5)
 
-def send_spot_logs(log_path):
+def send_spot_logs(log_path: str):
     ssm = SSM()
 
     if not os.path.exists(log_path):
@@ -177,7 +177,7 @@ def train_history():
         )
     )
 
-def help(script_name):
+def help(script_name: str):
     print(
     f"""
         usage: {script_name} <prepare|train|predict|sync|request_spot|get_spot_logs|clean_up|train_history|send_spot_logs>
