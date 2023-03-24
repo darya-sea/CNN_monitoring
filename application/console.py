@@ -30,12 +30,12 @@ def predict(image_path: str):
 
     models_path = os.path.join(config.DATA_FOLDER, "output/models")
     model_file = predict.get_best_model(models_path)
-    plant_types_file = os.path.join(config.DATA_FOLDER, "output/models/train_plant_types.json")
+    plant_types_file = os.path.join(config.DATA_FOLDER, "output/models/train_data_types.json")
 
     if model_file:
         plant_types = predict.load_classes(plant_types_file)
         resutls = predict.predict(image_path, model_file)
-        if resutls:
+        if resutls and plant_types:
             visualization.show_predicted_images(resutls, plant_types)
             #pprint(resutls)
 

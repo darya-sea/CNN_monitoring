@@ -62,7 +62,7 @@ class Prediction:
 
         for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
             (x, y, w, h) = cv2.boundingRect(contour)
-            if (w > 30 and h > 30) and (w < 150 and h < 150):
+            if (w > 15 and h > 15) and (w < 224 and h < 224):
                 bonding_boxes.append({
                     "image": image[y:y+h, x:x+w],
                     "bbox": (x, y, w, h)
