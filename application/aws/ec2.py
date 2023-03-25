@@ -14,7 +14,6 @@ class EC2:
         self.__volume_name = "CNNTrainInstanceVolume"
         self.__volume_size = 30
         self.__volume_device = "/dev/xvdf"
-        self.__ami_id = "ami-0e8ac16acd5e85cc4"
 
         self.__instance_role_policies = [
             "AmazonEC2FullAccess",
@@ -150,8 +149,11 @@ class EC2:
         print(f"[INFO] InstanceProfile {self.__instance_profile} deleted.")
         print(f"[INFO] Role {self.__instance_role} deleted.")
 
-    def create_launch_template(self) -> str:
+    def create_launch_template(self, ami_id) -> str:
         """Create launch template.
+
+        Args:
+            ami_id (str): EC2 image id.
 
         Returns:
             str: template name.
@@ -161,7 +163,7 @@ class EC2:
             client.create_launch_template(
                 LaunchTemplateName=self.__launch_template,
                 LaunchTemplateData={
-                    "ImageId": self.__ami_id,
+                    "ImageId": ami_id,
                     "SecurityGroups": ["default"],
                     "Placement": {
                         "AvailabilityZone": f"{self.__session.region_name}a"

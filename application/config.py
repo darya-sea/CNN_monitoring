@@ -12,61 +12,20 @@ POOL_SIZE = 6
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 # AWS params
-S3_BUCKET = "cnn-data"
-EC2_MAX_PRICE = "0.07"
+S3_BUCKET = os.getenv("S3_BUCKET", "cnn-data")
+EC2_MAX_PRICE = os.getenv("EC2_MAX_PRICE", "0.7")
+EC2_AMI_ID = os.getenv("EC2_AMI_ID", "ami-07600570b75d0d064")
 EC2_INSTANCE_TYPES = [
     {
-        "InstanceType": "t3a.xlarge"
+        "InstanceType": "g4dn.xlarge"
     },
     {
-        "InstanceType": "t3.xlarge"
+        "InstanceType": "g4dn.2xlarge 	"
     },
     {
-        "InstanceType": "c5a.xlarge"
+        "InstanceType": "g5g.xlarge"
     },
     {
-        "InstanceType": "c6i.xlarge"
-    },
-    {
-        "InstanceType": "m5.xlarge"
-    },
-    {
-        "InstanceType": "c4.xlarge"
-    },
-    {
-        "InstanceType": "r4.xlarge"
-    },
-    {
-        "InstanceType": "r5n.xlarge"
-    },
-    {
-        "InstanceType": "m6i.xlarge"
-    },
-    {
-        "InstanceType": "t2.xlarge"
-    },
-    {
-        "InstanceType": "r5.xlarge"
-    },
-    {
-        "InstanceType": "c6a.xlarge"
-    },
-    {
-        "InstanceType": "r6i.xlarge"
-    },
-    {
-        "InstanceType": "m6a.xlarge"
-    },
-    {
-        "InstanceType": "r6a.xlarge"
-    },
-    {
-        "InstanceType": "c5n.xlarge"
-    },
-    {
-        "InstanceType": "m5a.xlarge"
-    },
-    {
-        "InstanceType": "c5.xlarge"
+        "InstanceType": "g5g.2xlarge 	"
     }
 ]
