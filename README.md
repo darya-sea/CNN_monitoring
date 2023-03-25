@@ -111,6 +111,6 @@ Epochs: 50
 
 Epochs: 50
 
-|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|Units per hour|Total spent units|
-| --- | --- | --- | --- | --- | --- |
-|6|3|6|5|1.96|9.8|
+|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|Units per hour|Total spent units|Price for spent units|
+| --- | --- | --- | --- | --- | --- | --- |
+|6|3|6|5|1.96|9.8|€0.11662
