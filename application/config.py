@@ -20,12 +20,12 @@ EC2_INSTANCE_TYPES = [
         "InstanceType": "g4dn.xlarge"
     },
     {
-        "InstanceType": "g4dn.2xlarge 	"
+        "InstanceType": "g4dn.2xlarge"
     },
     {
         "InstanceType": "g5g.xlarge"
     },
     {
-        "InstanceType": "g5g.2xlarge 	"
+        "InstanceType": "g5g.2xlarge"
     }
 ]

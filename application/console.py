@@ -95,7 +95,7 @@ def request_spot():  # noqa
 
     ec2.create_volume()
     ec2.create_instance_profile()
-    ec2.create_launch_template()
+    ec2.create_launch_template(config.EC2_AMI_ID)
     ec2.create_spot_fleet_role()
     ec2.request_spot_fleet(config.EC2_INSTANCE_TYPES, config.EC2_MAX_PRICE)
 
@@ -112,18 +112,6 @@ def request_spot():  # noqa
                             f"mount {device_name} /mnt",
                             f"mkfs.ext4 {device_name}",
                             f"mount {device_name} /mnt",
-                            "yum install opencv-python -y",
-                            "pip3 install virtualenv"
-                        ]
-                    )
-                    if output["StandardErrorContent"]:
-                        print(output["StandardErrorContent"])
-                    if output["StandardOutputContent"]:
-                        print(output["StandardOutputContent"])
-
-                    output = ssm.execute_command(
-                        instance["InstanceId"],
-                        [
                             "cd /mnt",
                             "git clone https://github.com/darya-sea/CNN_monitoring.git",
                             "cd /mnt/CNN_monitoring",
