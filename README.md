@@ -71,8 +71,46 @@ Epoch 1/60
    4/4961 [..............................] - ETA: 2:07:45 - loss: 1.5439 - acc: 0.2969
 ....
 $ python console.py train_history
-``
+```
 
 ## Test
 $ pip install tox
 $ tox -c tests/tox.ini
+
+
+## Calculations
+
+### AWS
+
+|Type|vCPUs|GPU Memory|Memory (GiB)|On-Demand Price/hr|Spot-price|
+| --- | --- | --- | --- | --- | --- |
+|g4dn.xlarge|4|16|16|$0.526|0.1978 (62%)|
+|g4dn.2xlarge|8|16|32|$0.752|0.2828 (62%)|
+|g5g.xlarge|4|16|8|$0.42|0.1579 (62%)|
+|g5g.2xlarge|8|16|16|$0.556|0.2091 (62%)|
+
+
+**Tests**
+
+Epochs: 50
+
+|Type|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|On-Demand Price/hr|Spot-price|
+| --- | --- | --- | --- | --- | --- | --- |
+|g4dn.xlarge|6|3|6|5|2.63|0.989|
+|g4dn.2xlarge|6|3|6|5|3.76|1.414|
+|g5g.xlarge|6|3|6|5|2.1|0.7895|
+|g5g.2xlarge|6|3|6|5|2.78|1.0455|
+
+### Collab
+
+|GPU Memory (GiB)|Memory (GiB)|Price per 100 instances|
+| --- | --- | --- |
+|15.0|12.7| €11.19|
+
+**Tests**:
+
+Epochs: 50
+
+|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|Units per hour|Total spent units|
+| --- | --- | --- | --- | --- | --- |
+|6|3|6|5|1.96|9.8|
