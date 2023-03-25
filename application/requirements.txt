@@ -2,12 +2,9 @@ opencv-python
 numpy
 matplotlib
 pandas
-imageio
 imagecodecs
-rasterio
 tensorflow==2.11
 pysimplegui
-imutils
 boto3
 scipy
 unidecode
