@@ -22,7 +22,8 @@ warnings.filterwarnings('ignore')
 logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
-def get_layout():
+
+def get_layout() -> list:  # noqa
     preparation = [
         [
             gui.Text("CNN Folder", size=(12, 1)),
@@ -103,7 +104,7 @@ def get_layout():
     return layout
 
 
-def draw_prediction(results: list, plant_types_file: str):
+def draw_prediction(results: list, plant_types_file: str):  # noqa
     results = results[:4]
 
     images_count = len(results)
@@ -136,8 +137,8 @@ def draw_prediction(results: list, plant_types_file: str):
     for result in results:
         image = cv2.imread(result[0])
         axes = figure.add_subplot(
-            round(images_count/4) + 1 if images_count > 1 else 1, 
-            2 if images_count > 1 else 1, 
+            round(images_count/4) + 1 if images_count > 1 else 1,
+            2 if images_count > 1 else 1,
             count
         )
 
@@ -160,7 +161,7 @@ def draw_prediction(results: list, plant_types_file: str):
 
         detected_plants = "\n".join(
             {
-                f"{plant}: {round(plants_on_image[plant]*100/plants_on_image_count)}%" 
+                f"{plant}: {round(plants_on_image[plant]*100/plants_on_image_count)}%"
                 for plant in plants_on_image
             }
         )
@@ -178,8 +179,8 @@ def draw_prediction(results: list, plant_types_file: str):
     sub_window.read(close=True)
 
 
-def perform_long_operation(window, results_key, func, *args):
-    def print_msg(message, line_break=True):
+def perform_long_operation(window: dict, results_key: str, func: function, *args: list):  # noqa
+    def print_msg(message: str, line_break: bool = True):  # noqa
         if keras.utils.io_utils.is_interactive_logging_enabled():
             if line_break:
                 event_name = f"{results_key[:-1]}_SAVED-"
@@ -191,7 +192,7 @@ def perform_long_operation(window, results_key, func, *args):
             previous_message = window[results_key].get()
             window[results_key].update(f"{previous_message}\n{str(message)}")
 
-    def print_wrapper(message, *args, **kwargs):
+    def print_wrapper(message: str, *args: list, **kwargs: dict):  # noqa
         previous_message = window[results_key].get()
         window[results_key].update(f"{previous_message}\n{str(message)}\n{''.join(args)}")
 
@@ -205,12 +206,12 @@ def perform_long_operation(window, results_key, func, *args):
     window.write_event_value(f"{results_key[:-1]}_EVENT-", results)
 
 
-def run_preparation(cnn_folder, data_folder):
+def run_preparation(cnn_folder: str, data_folder: str):  # noqa
     PrepareData(cnn_folder, data_folder).prepare_images()
     window["-PREP_RESULTS-"].update(f'Done!\n{window["-PREP_RESULTS-"].get()}')
 
 
-def run_prediction(image_folder, model_file):
+def run_prediction(image_folder: str, model_file: str) -> list:  # noqa
     resutls = []
     window["-PRED_RESULTS-"].update("")
     predict = Prediction()
@@ -232,7 +233,8 @@ def run_prediction(image_folder, model_file):
 
     return resutls
 
-def run_training(data_folder, traning_epochs):
+
+def run_training(data_folder: str, traning_epochs: int):  # noqa
     training = Train(data_folder)
     visualization = Visualization()
 
@@ -245,6 +247,7 @@ def run_training(data_folder, traning_epochs):
         history = training.train(train_generator, validation_generator, traning_epochs)
         visualization.save_history(history, output_folder)
         visualization.save_traning_plot(history, output_folder)
+
 
 thread = None
 window = gui.Window("CNN Monitoring", get_layout(), font=("Arial", 12))

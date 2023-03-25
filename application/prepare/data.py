@@ -7,12 +7,28 @@ import json
 
 
 class PrepareData:
-    def __init__(self, input_folder, output_folder):
+    """Generate datasets for training."""
+
+    def __init__(self, input_folder: str, output_folder: str):
+        """Generate datasets for training.
+
+        Args:
+            input_folder (str): folder for source images.
+            output_folder (str): folder for generated images.
+        """
         self.__input_folder = input_folder
         self.__output_folder = output_folder
         self.__metadata = {}
 
     def remove_background(self, image: cv2.Mat) -> cv2.Mat:
+        """Remove background from image.
+
+        Args:
+            image (cv2.Mat): image data array.
+
+        Returns:
+            cv.Mat: image data array.
+        """
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         lower = numpy.array([20, 30, 40])
@@ -20,7 +36,7 @@ class PrepareData:
 
         mask = cv2.inRange(hsv, lower, upper)
 
-        kernel = numpy.ones((5,5), numpy.uint8)
+        kernel = numpy.ones((5, 5), numpy.uint8)
         mask = cv2.erode(mask, kernel, iterations=1)
         mask = cv2.dilate(mask, kernel, iterations=1)
 
@@ -30,6 +46,14 @@ class PrepareData:
         return bg
 
     def get_all_images(self, folder: str) -> list:
+        """Get all images from folder.
+
+        Args:
+            folder (str): folder path to get images.
+
+        Returns:
+            list: results.
+        """
         images = []
 
         for entry in os.scandir(folder):
@@ -42,6 +66,15 @@ class PrepareData:
         return images
 
     def make_cropped_images(self, input_image: str, output_image: str) -> int:
+        """Crop image to small parts.
+
+        Args:
+            input_image (str): input image path to crop.
+            output_image (str): output image pattern path.
+
+        Returns:
+            int: cropped images count.
+        """
         images_count = 0
 
         min_w = 30
@@ -56,7 +89,8 @@ class PrepareData:
             min_h = self.__metadata[folder_name].get("min_h", min_h)
 
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        threshold = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        threshold = cv2.threshold(
+            gray, 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         for contour in cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]:
             (x, y, w, h) = cv2.boundingRect(contour)
             if (w > min_w and h > min_h) and (w < 150 and h < 150):
@@ -64,11 +98,16 @@ class PrepareData:
                     output_image.replace(".tif", f"_{images_count}.tif"),
                     image[y:y+h, x:x+w]
                 )
-                images_count+=1
+                images_count += 1
 
         return images_count
 
     def prepare_images(self) -> bool:
+        """Prepare images.
+
+        Returns:
+            bool: result status.
+        """
         if self.__input_folder == self.__output_folder:
             print(
                 f"[ERROR] Input and output folders are same: {self.__input_folder}. Stopped.")
@@ -84,8 +123,10 @@ class PrepareData:
             if not os.path.isdir(os.path.join(self.__input_folder, data_type_name)):
                 continue
 
-            train_folder = os.path.join(self.__output_folder, "train", data_type_name)
-            validation_folder = os.path.join(self.__output_folder, "validation", data_type_name)
+            train_folder = os.path.join(
+                self.__output_folder, "train", data_type_name)
+            validation_folder = os.path.join(
+                self.__output_folder, "validation", data_type_name)
 
             shutil.rmtree(train_folder, ignore_errors=True)
             shutil.rmtree(validation_folder, ignore_errors=True)
@@ -93,7 +134,8 @@ class PrepareData:
             os.makedirs(train_folder, exist_ok=True)
             os.makedirs(validation_folder, exist_ok=True)
 
-            images = self.get_all_images(os.path.join(self.__input_folder, data_type_name))
+            images = self.get_all_images(os.path.join(
+                self.__input_folder, data_type_name))
             images_count = len(images)
 
             numpy.random.shuffle(images)
@@ -110,7 +152,8 @@ class PrepareData:
 
             # Copy-paste images
             for image_path in train_images:
-                output_image = os.path.join(train_folder, os.path.basename(image_path))
+                output_image = os.path.join(
+                    train_folder, os.path.basename(image_path))
 
                 if os.path.exists(output_image):
                     output_image = os.path.join(
@@ -118,11 +161,13 @@ class PrepareData:
                         f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
                     )
 
-                #shutil.copy(image_path, output_image)
-                train_images_count += self.make_cropped_images(image_path, output_image)
+                # shutil.copy(image_path, output_image)
+                train_images_count += self.make_cropped_images(
+                    image_path, output_image)
 
             for image_path in validation_images:
-                output_image = os.path.join(validation_folder, os.path.basename(image_path))
+                output_image = os.path.join(
+                    validation_folder, os.path.basename(image_path))
 
                 if os.path.exists(output_image):
                     output_image = os.path.join(
@@ -130,13 +175,14 @@ class PrepareData:
                         f"{str(random.randrange(1, 100))}_{os.path.basename(image_path)}"
                     )
 
-                #shutil.copy(image_path, output_image)
-                validation_images_count += self.make_cropped_images(image_path, output_image)
-            
+                # shutil.copy(image_path, output_image)
+                validation_images_count += self.make_cropped_images(
+                    image_path, output_image)
+
             print(
                 f"Data for '{data_type_name}':\n",
                 f"Input images: {images_count}\n",
-				f"Training: {train_images_count}\n",
-				f"Validation: {validation_images_count}\n"
-			)
+                f"Training: {train_images_count}\n",
+                f"Validation: {validation_images_count}\n"
+            )
         return True

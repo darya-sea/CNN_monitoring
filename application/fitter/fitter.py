@@ -5,12 +5,28 @@ from multiprocessing import Pool
 
 
 class Fitter:
-    def __init__(self, pool_size=6):
+    """Fitter class."""
+
+    def __init__(self, pool_size: int = 6):
+        """Fitter class.
+
+        Args:
+            pool_size (int): size of pool for multiprocessing.
+        """
         self.__pool = Pool(self.__pool_size)
         self.__pool_files = []
         self.__pool_size = pool_size
 
-    def in_csv(self, file_path, csv_data):
+    def in_csv(self, file_path: str, csv_data: dict) -> bool:
+        """Check if file path in csv file.
+
+        Args:
+            file_path (str): file path.
+            csv_data (dict): loaded csv data.
+
+        Returns:
+            str: Github token.
+        """
         splited_path = file_path.split("/")
 
         if files := csv_data.get(splited_path[-2]):
@@ -20,8 +36,13 @@ class Fitter:
                 return True
 
     @staticmethod
-    def fitter(negative_image, color_image):
+    def fitter(negative_image: str, color_image: str):
+        """Fitter on specific size.
 
+        Args:
+            negative_image (str): infrared image.
+            color_image (str): colored image.
+        """
         print(f"Fitting image {color_image}")
 
         img1 = cv2.imread(negative_image, cv2.IMREAD_ANYCOLOR)
@@ -31,7 +52,12 @@ class Fitter:
         resized_cropped = cv2.resize(cropped, (2048, 1536))
         cv2.imwrite(color_image, resized_cropped)
 
-    def scandir(self, input_folder):
+    def scandir(self, input_folder: str):
+        """List files/folders from input_folder .
+
+        Args:
+            input_folder (str): folder to scan.
+        """
         # csv_data = dict(
         #   pd.read_csv(config.CSV_FILE, dtype=object).groupby("Folder")["Name"].apply(list)
         # )

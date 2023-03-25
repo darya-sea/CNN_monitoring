@@ -17,11 +17,12 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)
 
 
-def prepare():
+def prepare():  # noqa
     from prepare.data import PrepareData
     PrepareData(config.CNN_FOLDER, config.DATA_FOLDER).prepare_images()
 
-def predict(image_path: str):
+
+def predict(image_path: str):  # noqa
     from train.prediction import Prediction
     from visualization.visualization import Visualization
 
@@ -37,15 +38,16 @@ def predict(image_path: str):
         resutls = predict.predict(image_path, model_file)
         if resutls and plant_types:
             visualization.show_predicted_images(resutls, plant_types)
-            #pprint(resutls)
+            # pprint(resutls)
 
-def train():
+
+def train():  # noqa
     from train.train import Train
     from visualization.visualization import Visualization
 
     training = Train(config.DATA_FOLDER)
     visualization = Visualization()
-    
+
     history_path = os.path.join(config.DATA_FOLDER, "output")
 
     train_generator = training.get_data_generator("train")
@@ -60,7 +62,8 @@ def train():
         visualization.save_traning_plot(history, history_path)
         visualization.save_history(history, history_path)
 
-def sync_s3(local_folder: str = None):
+
+def sync_s3(local_folder: str = None):  # noqa
     s3 = S3()
     s3.create_bucket(config.S3_BUCKET)
 
@@ -72,19 +75,21 @@ def sync_s3(local_folder: str = None):
     else:
         s3.download_files(config.S3_BUCKET)
 
-def clean_up():
+
+def clean_up():  # noqa
     ec2 = EC2()
     s3 = S3()
     ssm = SSM()
 
     ec2.cancel_spot_fleet_request()
-    #s3.delete_bucket(config.S3_BUCKET)
-    #ec2.delete_volume()
+    # s3.delete_bucket(config.S3_BUCKET)
+    # ec2.delete_volume()
     ec2.delete_launch_templat()
     ec2.delete_instance_profile()
     ssm.delete_logs()
 
-def request_spot():
+
+def request_spot():  # noqa
     ec2 = EC2()
     ssm = SSM()
 
@@ -141,15 +146,17 @@ def request_spot():
     # ec2.cancel_spot_fleet_request()
     # ec2.delete_volume()
 
-def get_spot_logs():
-   ssm = SSM()
-   while True:
-    for log in ssm.get_logs():
-        message = log["message"].strip()
-        print(message)
-    time.sleep(5)
 
-def send_spot_logs(log_path: str):
+def get_spot_logs():  # noqa
+    ssm = SSM()
+    while True:
+        for log in ssm.get_logs():
+            message = log["message"].strip()
+            print(message)
+        time.sleep(5)
+
+
+def send_spot_logs(log_path: str):  # noqa
     ssm = SSM()
 
     if not os.path.exists(log_path):
@@ -165,7 +172,8 @@ def send_spot_logs(log_path: str):
     while True:
         ssm.send_log(process.stdout.readline())
 
-def train_history():
+
+def train_history():  # noqa
     from visualization.visualization import Visualization
 
     visualization = Visualization()
@@ -176,32 +184,34 @@ def train_history():
         )
     )
 
-def help(script_name: str):
-    print(
-    f"""
-        usage: {script_name} <prepare|train|predict|sync|request_spot|get_spot_logs|clean_up|train_history|send_spot_logs>
 
-        preapre example: 
-          python {script_name} prepare
-        train example: 
-          python {script_name} train
-        predict example: 
-          python {script_name} predict "../CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
-        sync example: 
-          python {script_name} sync
-          python {script_name} sync CNN
-        request_spot example: 
-          python {script_name} request_spot
-        get_spot_logs example: 
-          python {script_name} spot_logs
-        clean_up example: 
-          python {script_name} clean_up
-        train_history example: 
-          python {script_name} train_history
-        send_spot_logs example: 
-          python {script_name} tail_logs
-    """
+def help(script_name: str):  # noqa
+    print(
+        f"""
+            usage: {script_name} <prepare|train|predict|sync|request_spot|get_spot_logs|clean_up|train_history|send_spot_logs>
+
+            preapre example:
+            python {script_name} prepare
+            train example:
+            python {script_name} train
+            predict example:
+            python {script_name} predict "../CNN/heřmánkovec nevonný/2022_09_21 hermankovec/00257C.tif"
+            sync example:
+            python {script_name} sync
+            python {script_name} sync CNN
+            request_spot example:
+            python {script_name} request_spot
+            get_spot_logs example:
+            python {script_name} spot_logs
+            clean_up example:
+            python {script_name} clean_up
+            train_history example:
+            python {script_name} train_history
+            send_spot_logs example:
+            python {script_name} tail_logs
+        """
     )
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

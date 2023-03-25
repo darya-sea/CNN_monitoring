@@ -1,4 +1,3 @@
-    
 import pandas
 import os
 import cv2
@@ -6,8 +5,17 @@ import matplotlib
 import matplotlib.pyplot
 import unidecode
 
+
 class Visualization:
+    """Class to show results."""
+
     def save_traning_plot(self, history: any, path: str):
+        """Save traning plot.
+
+        Args:
+            history (dataframe): training history dataframe.
+            path (str): path to save plot.
+        """
         os.makedirs(path, exist_ok=True)
 
         dataframe = pandas.DataFrame(history.history)
@@ -18,8 +26,13 @@ class Visualization:
         matplotlib.pyplot.ylabel("Metric")
         matplotlib.pyplot.savefig(f"{path}/model_history.png")
         matplotlib.pyplot.close()
-    
+
     def show_traning_plot(self, json_file: str):
+        """Show traning plit.
+
+        Args:
+            json_file (str): training data to draw plot.
+        """
         if os.path.exists(json_file):
             dataframe = pandas.read_json(json_file)
 
@@ -48,8 +61,13 @@ class Visualization:
                 matplotlib.pyplot.show()
                 matplotlib.pyplot.close()
 
-
     def save_history(self, history: any, path: str):
+        """Save traning hisotry to csv/json.
+
+        Args:
+            history (dataframe): training history dataframe.
+            path (str): path to save history in csv/json format.
+        """
         os.makedirs(path, exist_ok=True)
 
         dataframe = pandas.DataFrame(history.history)
@@ -58,11 +76,17 @@ class Visualization:
         with open(hist_json_file, mode="w") as _file:
             dataframe.to_json(_file)
 
-        hist_csv_file =  f"{path}/model_history.csv"
+        hist_csv_file = f"{path}/model_history.csv"
         with open(hist_csv_file, mode="w") as _file:
             dataframe.to_csv(_file)
-            
+
     def show_predicted_images(self, results: list, data_types: dict):
+        """Show predicted images.
+
+        Args:
+            results (list): list of predicted results.
+            data_types (dict): types of data to extract by predicted index..
+        """
         results = results[:4]
         images_count = len(results)
         count = 1
@@ -76,8 +100,8 @@ class Visualization:
         for result in results:
             image = cv2.imread(result[0])
             axes = figure.add_subplot(
-                round(images_count/4) + 1 if images_count > 1 else 1, 
-                2 if images_count > 1 else 1, 
+                round(images_count/4) + 1 if images_count > 1 else 1,
+                2 if images_count > 1 else 1,
                 count
             )
 
@@ -100,11 +124,11 @@ class Visualization:
 
             detected_objects = "\n".join(
                 {
-                    f"{object}: {round(objects_on_image[object]*100/objects_on_image_count)}%" 
+                    f"{object}: {round(objects_on_image[object]*100/objects_on_image_count)}%"
                     for object in objects_on_image
                 }
             )
-    
+
             axes.axis("off")
             axes.set_title(f"Image: {os.path.basename(result[0])}\n{detected_objects}.", fontsize=9)
             axes.imshow(image, aspect="auto")
