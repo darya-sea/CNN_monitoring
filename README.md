@@ -72,3 +72,7 @@ Epoch 1/60
 ....
 $ python console.py train_history
 ``
+
+## Test
+$ pip install tox
+$ tox -c tests/tox.ini
