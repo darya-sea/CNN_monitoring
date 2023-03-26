@@ -115,26 +115,29 @@ class Prediction:
         predictions = []
 
         image = cv2.imread(image_path)
+        bboxes = self.get_bonding_boxes(image)
 
-        for bbox in self.get_bonding_boxes(image):
-            image = cv2.resize(
+        images = [
+            cv2.resize(
                 bbox["image"],
                 self.__taget_size
             ).reshape((1,) + self.__taget_size + (3,))
+            for bbox in bboxes
+        ]
 
-            prediction = model.predict(image)[0]
-
-            max_prob_index = numpy.argmax(prediction)
-            probability = prediction[max_prob_index]*100
-
-            if probability > 90:
-                predictions.append({
-                    "probability": probability,
-                    "max_index": max_prob_index,
-                    "bbox": bbox["bbox"]
-                })
-
-        return predictions
+        if images:
+            predictions = model.predict(numpy.vstack(images), use_multiprocessing=True)
+        
+            return [
+                {
+                    "probability": predictions[index][numpy.argmax(predictions[index])]*100,
+                    "max_index": numpy.argmax(predictions[index]),
+                    "bbox": bboxes[index]["bbox"]
+                }
+                for index in range(0, len(predictions))
+                if predictions[index][numpy.argmax(predictions[index])]*100 > 90
+            ]
+        return []
 
     def predict(self, path: str, model_file: str) -> list:
         """Prediction function.
