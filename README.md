@@ -82,20 +82,20 @@ $ tox -c tests/tox.ini
 
 ### AWS
 
-|Type|vCPUs|GPU Memory|Memory (GiB)|On-Demand Price/hr|Spot-price|
-| --- | --- | --- | --- | --- | --- |
-|g4dn.xlarge|4|16|16|$0.526|0.1978 (62%)|
-|g4dn.2xlarge|8|16|32|$0.752|0.2828 (62%)|
-|g5g.xlarge|4|16|8|$0.42|0.1579 (62%)|
-|g5g.2xlarge|8|16|16|$0.556|0.2091 (62%)|
+|Type|vCPUs|GPU Memory|Memory (GiB)|On-Demand Price/hr
+| --- | --- | --- | --- | --- |
+|g4dn.xlarge|4|16|16|$0.526
+|g4dn.2xlarge|8|16|32|$0.752
+|g5g.xlarge|4|16|8|$0.42
+|g5g.2xlarge|8|16|16|$0.556
 
 
 **Tests**
 
 Epochs: 50
 
-|Type|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|On-Demand Price/hr|Spot-price|
-| --- | --- | --- | --- | --- | --- | --- |
+|Type|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|On-Demand Price/hr
+| --- | --- | --- | --- | --- | --- |
 |g4dn.xlarge|6|3|6|5|2.63|0.989|
 |g4dn.2xlarge|6|3|6|5|3.76|1.414|
 |g5g.xlarge|6|3|6|5|2.1|0.7895|
@@ -119,6 +119,14 @@ Epochs: 50
 
 Epochs: 50
 
-|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|Units per hour|Total spent units|Price for spent units|
+*Pay as you go*
+
+|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|Units per hour|Total spent units|Total price|
 | --- | --- | --- | --- | --- | --- | --- |
-|6|3|6|5|1.96|9.8|€0.11662
+|6.3|3|6|5|1.96|9.8|€1.09662
+
+*Colab Pro*
+
+|Used GPU|Used Memory|Time per epoch(min)|Total time(h)|Units per hour|Total spent units|Totla price|
+| --- | --- | --- | --- | --- | --- | --- |
+|6.7|3|3|2.5|13.8|34.5|€3.8
