@@ -101,11 +101,19 @@ Epochs: 50
 |g5g.xlarge|6|3|6|5|2.1|0.7895|
 |g5g.2xlarge|6|3|6|5|2.78|1.0455|
 
-### Collab
+### Colab
 
-|GPU Memory (GiB)|Memory (GiB)|Price per 100 instances|
+*Pay as you go*
+
+|GPU Memory (GiB)|System RAM (GiB)|Price per 100 instances|
 | --- | --- | --- |
 |15.0|12.7| €11.19|
+
+*Colab Pro*
+
+|GPU Memory (GiB)|System RAM (GiB)|Price per 100 instances|
+| --- | --- | --- |
+|40.0|83.5| €11.19|
 
 **Tests**:
 
