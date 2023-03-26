@@ -80,12 +80,69 @@ class Visualization:
         with open(hist_csv_file, mode="w") as _file:
             dataframe.to_csv(_file)
 
+    def save_predicted_results(self, results: list, data_types: dict, results_path: str):
+        """Save predicted results in csv file.
+
+        Args:
+            results (list): list of predicted results.
+            data_types (dict): types of data to extract by predicted index.
+            results_path (str): folder path to save results.
+        """
+
+        csv_data = f"Image path, {' (%), '.join(data_types.values())}\n"
+        prediction_file = os.path.join(results_path, "prediction.csv")
+        
+        objects_in_folder = {}
+        objects_in_folder_count = 0
+        total_prediction_file = os.path.join(results_path, "prediction_total.csv")
+
+        for result in results:
+            objects_on_image = {}
+            objects_on_image_count = 0
+    
+            csv_data += result[0]
+
+            for data in result[1]:
+                data_type = unidecode.unidecode(data_types[str(data["max_index"])])
+                data_types[str(data["max_index"])] = data_type
+
+                objects_on_image[data_type] = objects_on_image.get(data_type, 0) + 1
+                objects_in_folder[data_type] = objects_in_folder.get(data_type, 0) + 1
+
+                objects_on_image_count += 1
+
+            objects_in_folder_count += objects_on_image_count
+
+            for data_type in data_types.values():
+                if data_type in objects_on_image:
+                    csv_data += f", {round(objects_on_image[data_type]*100/objects_on_image_count)}"
+                else:
+                    csv_data += ", 0"
+            csv_data += "\n"
+
+        with open(prediction_file, "w") as _file:
+            _file.write(csv_data)
+        
+        if len(results) > 1:
+            csv_data = f"Folder, {' (%), '.join(data_types.values())}\n"
+            csv_data += os.path.dirname(results[0][0])
+
+            for data_type in data_types.values():
+                if data_type in objects_in_folder:
+                    csv_data += f", {round(objects_in_folder[data_type]*100/objects_in_folder_count)}"
+                else:
+                    csv_data += ", 0"
+            csv_data += "\n"
+
+            with open(total_prediction_file, "w") as _file:
+                _file.write(csv_data)
+
     def show_predicted_images(self, results: list, data_types: dict):
         """Show predicted images.
 
         Args:
             results (list): list of predicted results.
-            data_types (dict): types of data to extract by predicted index..
+            data_types (dict): types of data to extract by predicted index.
         """
         results = results[:4]
         images_count = len(results)
@@ -124,8 +181,8 @@ class Visualization:
 
             detected_objects = "\n".join(
                 {
-                    f"{object}: {round(objects_on_image[object]*100/objects_on_image_count)}%"
-                    for object in objects_on_image
+                    f"{_object}: {round(objects_on_image[_object]*100/objects_on_image_count)}%"
+                    for _object in objects_on_image
                 }
             )
 

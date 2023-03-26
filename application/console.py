@@ -32,11 +32,13 @@ def predict(image_path: str):  # noqa
     models_path = os.path.join(config.DATA_FOLDER, "output/models")
     model_file = predict.get_best_model(models_path)
     plant_types_file = os.path.join(config.DATA_FOLDER, "output/models/train_data_types.json")
+    results_path= os.path.join(os.path.dirname(image_path))
 
     if model_file:
         plant_types = predict.load_classes(plant_types_file)
         resutls = predict.predict(image_path, model_file)
         if resutls and plant_types:
+            visualization.save_predicted_results(resutls, plant_types, results_path)
             visualization.show_predicted_images(resutls, plant_types)
             # pprint(resutls)
 
