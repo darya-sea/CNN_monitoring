@@ -179,7 +179,7 @@ def draw_prediction(results: list, plant_types_file: str):  # noqa
     sub_window.read(close=True)
 
 
-def perform_long_operation(window: dict, results_key: str, func: function, *args: list):  # noqa
+def perform_long_operation(window: dict, results_key: str, func: any, *args: list):  # noqa
     def print_msg(message: str, line_break: bool = True):  # noqa
         if keras.utils.io_utils.is_interactive_logging_enabled():
             if line_break:
@@ -208,7 +208,7 @@ def perform_long_operation(window: dict, results_key: str, func: function, *args
 
 def run_preparation(cnn_folder: str, data_folder: str):  # noqa
     PrepareData(cnn_folder, data_folder).prepare_images()
-    window["-PREP_RESULTS-"].update(f'Done!\n{window["-PREP_RESULTS-"].get()}')
+    window["-PREP_RESULTS-"].update(f'{window["-PREP_RESULTS-"].get()}\nDone!')
 
 
 def run_prediction(image_folder: str, model_file: str) -> list:  # noqa
@@ -229,7 +229,7 @@ def run_prediction(image_folder: str, model_file: str) -> list:  # noqa
     resutls = predict.predict(image_folder, model_file)
 
     window["-PRED_RESULTS-"].update(
-        f'Done!\n{window["-PRED_RESULTS-"].get()}')
+        f'{window["-PRED_RESULTS-"].get()}\nDone!')
 
     return resutls
 
