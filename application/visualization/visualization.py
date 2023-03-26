@@ -88,10 +88,9 @@ class Visualization:
             data_types (dict): types of data to extract by predicted index.
             results_path (str): folder path to save results.
         """
-
         csv_data = f"Image path, {' (%), '.join(data_types.values())}\n"
         prediction_file = os.path.join(results_path, "prediction.csv")
-        
+
         objects_in_folder = {}
         objects_in_folder_count = 0
         total_prediction_file = os.path.join(results_path, "prediction_total.csv")
@@ -99,7 +98,7 @@ class Visualization:
         for result in results:
             objects_on_image = {}
             objects_on_image_count = 0
-    
+
             csv_data += result[0]
 
             for data in result[1]:
@@ -122,7 +121,7 @@ class Visualization:
 
         with open(prediction_file, "w") as _file:
             _file.write(csv_data)
-        
+
         if len(results) > 1:
             csv_data = f"Folder, {' (%), '.join(data_types.values())}\n"
             csv_data += os.path.dirname(results[0][0])

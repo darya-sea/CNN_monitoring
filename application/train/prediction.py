@@ -127,7 +127,7 @@ class Prediction:
 
         if images:
             predictions = model.predict(numpy.vstack(images), use_multiprocessing=True)
-        
+
             return [
                 {
                     "probability": predictions[index][numpy.argmax(predictions[index])]*100,
