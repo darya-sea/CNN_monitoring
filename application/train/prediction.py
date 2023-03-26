@@ -11,7 +11,6 @@ class Prediction:
 
     def __init__(self):  # noqa
         self.__supported_formats = (".tiff", ".tif")
-        self.__max_images = 4
         self.__taget_size = (150, 150)
 
     def get_best_model(self, models_path: str) -> str:
@@ -155,8 +154,6 @@ class Prediction:
                 if image_path.path.endswith(self.__supported_formats):
                     results.append(
                         [image_path.path, self._predict(model, image_path.path)])
-                if len(results) >= self.__max_images:
-                    break
         else:
             if path.endswith(self.__supported_formats):
                 results.append([path, self._predict(model, path)])
