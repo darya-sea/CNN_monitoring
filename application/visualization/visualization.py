@@ -178,7 +178,7 @@ class Visualization:
 
                 objects_on_image_count += 1
 
-            detected_objects = "\n".join(
+            detected_objects = ", ".join(
                 {
                     f"{_object}: {round(objects_on_image[_object]*100/objects_on_image_count)}%"
                     for _object in objects_on_image
