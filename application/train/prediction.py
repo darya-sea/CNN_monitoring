@@ -150,7 +150,7 @@ class Prediction:
             list: results.
         """
         results = []
-        model = keras.models.load_model(model_file)
+        model = keras.models.load_model(model_file, compile=False)
 
         if os.path.isdir(path):
             for image_path in os.scandir(path):
