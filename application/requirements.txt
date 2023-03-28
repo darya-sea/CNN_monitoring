@@ -6,7 +6,6 @@ imagecodecs
 tensorflow==2.11
 pysimplegui
 boto3
-scipy
 unidecode
 # tensorflow-macos==2.10
 # tensorflow-metal==0.6
